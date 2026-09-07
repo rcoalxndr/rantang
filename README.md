@@ -1,0 +1,85 @@
+# Rantang — Sistem Pemesanan Prabayar
+
+Sistem pemesanan untuk **Rantang**, konsep bisnis makanan siap-santap bergizi
+seimbang dari tugas mata kuliah Kewirausahaan. Bisnisnya belum berjalan;
+perangkat lunaknya nyata.
+
+Dibangun sebagai proyek belajar backend: transaksi database, penguncian baris,
+dan race condition pada kuota produksi harian.
+
+## Model
+
+Dapur hanya memasak sebanyak yang sudah dipesan. Pelanggan mengisi saldo di
+muka, memesan untuk tanggal tertentu sebelum batas waktu, dan dapur membuka
+daftar produksi setiap pagi.
+
+## Teknologi
+
+```
+React + Vite → HTTP/JSON → Express (Node) → SQL langsung → PostgreSQL
+```
+
+Sengaja tanpa ORM: transaksi, penguncian baris, dan bentuk kueri adalah inti
+pelajaran proyek ini, dan ORM menyembunyikan ketiganya.
+
+## Menjalankan secara lokal
+
+Prasyarat: Node 22+, PostgreSQL 16+.
+
+Buat dua database:
+
+```bash
+psql -U postgres -c "CREATE DATABASE rantang_dev;"
+psql -U postgres -c "CREATE DATABASE rantang_test;"
+```
+
+Siapkan konfigurasi dan jalankan migrasi:
+
+```bash
+cd server
+cp .env.example .env
+# sunting .env, isi kata sandi PostgreSQL milikmu
+npm install
+npm run migrate
+npm run seed
+```
+
+## Test
+
+```bash
+cd server
+cp .env.example .env.test
+# sunting .env.test: isi kata sandi, dan ganti nama database jadi rantang_test
+npm run migrate:test
+npm test
+```
+
+Test dijalankan serial (`--test-concurrency=1`). Ketiga berkas test berbagi
+satu database dan saling menimpa kalau berjalan paralel.
+
+## Struktur
+
+```
+server/
+  src/db.js          koneksi pool + helper transaksi
+  migrations/        berkas SQL bernomor, dijalankan berurutan
+  scripts/migrate.js pelaksana migrasi + pencatat versi
+  scripts/seed.js    data contoh
+  tests/
+docs/
+  superpowers/specs/ desain
+  superpowers/plans/ rencana implementasi
+```
+
+## Dokumen
+
+- Desain: `docs/superpowers/specs/2026-09-07-rantang-pemesanan-design.md`
+- Rencana Fase 0–1: `docs/superpowers/plans/2026-09-07-fase-0-1-fondasi.md`
+
+## Status
+
+Fase 0–1 selesai: skema database, migrasi, dan 21 test yang membuktikan
+PostgreSQL menolak saldo minus, over-jual, peran tak dikenal, status tak
+dikenal, email ganda, dan penghapusan user yang punya riwayat pesanan.
+
+Berikutnya: autentikasi (Fase 2), lalu inti pemesanan (Fase 4).
