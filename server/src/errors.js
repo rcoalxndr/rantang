@@ -113,3 +113,51 @@ export class DaftarMenuKosong extends KesalahanDomain {
     super('DAFTAR_MENU_KOSONG', 'Tanggal layanan harus punya minimal satu menu.', 422);
   }
 }
+
+export class KuotaHabis extends KesalahanDomain {
+  constructor() {
+    super('KUOTA_HABIS', 'Porsi untuk menu ini sudah habis.', 409);
+  }
+}
+
+export class SaldoTidakCukup extends KesalahanDomain {
+  constructor() {
+    super('SALDO_TIDAK_CUKUP', 'Saldomu tidak cukup untuk pesanan ini.', 409);
+  }
+}
+
+export class LewatBatasWaktu extends KesalahanDomain {
+  constructor() {
+    super('LEWAT_BATAS_WAKTU', 'Pemesanan untuk tanggal ini sudah ditutup.', 403);
+  }
+}
+
+export class JumlahTidakValid extends KesalahanDomain {
+  constructor() {
+    super('JUMLAH_TIDAK_VALID', 'Jumlah porsi harus bilangan bulat lebih dari nol.', 422);
+  }
+}
+
+export class ItemPesananKosong extends KesalahanDomain {
+  constructor() {
+    super('ITEM_PESANAN_KOSONG', 'Pesanan harus berisi minimal satu menu.', 422);
+  }
+}
+
+export class ItemMenuTidakDitemukan extends KesalahanDomain {
+  constructor() {
+    super('ITEM_MENU_TIDAK_DITEMUKAN', 'Menu itu tidak tersedia di tanggal tersebut.', 404);
+  }
+}
+
+export class PesananTidakDitemukan extends KesalahanDomain {
+  constructor() {
+    super('PESANAN_TIDAK_DITEMUKAN', 'Pesanan tidak ditemukan.', 404);
+  }
+}
+
+export class PesananSudahDibatalkan extends KesalahanDomain {
+  constructor() {
+    super('PESANAN_SUDAH_DIBATALKAN', 'Pesanan ini sudah dibatalkan sebelumnya.', 409);
+  }
+}
