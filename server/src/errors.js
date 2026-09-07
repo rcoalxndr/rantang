@@ -49,3 +49,9 @@ export class TidakBerwenang extends KesalahanDomain {
     super('TIDAK_BERWENANG', 'Kamu tidak berhak mengakses ini.', 403);
   }
 }
+
+export class NamaKosong extends KesalahanDomain {
+  constructor() {
+    super('NAMA_KOSONG', 'Nama tidak boleh kosong.', 422);
+  }
+}
