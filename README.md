@@ -76,10 +76,28 @@ docs/
 - Desain: `docs/superpowers/specs/2026-09-07-rantang-pemesanan-design.md`
 - Rencana Fase 0–1: `docs/superpowers/plans/2026-09-07-fase-0-1-fondasi.md`
 
+## Menjalankan server
+
+```bash
+cd server
+npm run dev      # dengan auto-reload
+npm start        # tanpa auto-reload
+```
+
+Server jalan di `http://localhost:3000`. Cek cepat: `curl http://localhost:3000/api/health`
+
 ## Status
 
-Fase 0–1 selesai: skema database, migrasi, dan 21 test yang membuktikan
-PostgreSQL menolak saldo minus, over-jual, peran tak dikenal, status tak
-dikenal, email ganda, dan penghapusan user yang punya riwayat pesanan.
+**Fase 0–1 — fondasi data.** Skema 8 tabel, migrasi SQL bernomor, dan test yang
+membuktikan PostgreSQL menolak saldo minus, over-jual, peran tak dikenal,
+status tak dikenal, email ganda, dan penghapusan user yang punya riwayat
+pesanan.
 
-Berikutnya: autentikasi (Fase 2), lalu inti pemesanan (Fase 4).
+**Fase 2 — autentikasi.** Hash kata sandi dengan `crypto.scrypt` bawaan Node
+(bergaram, dibandingkan waktu-tetap), sesi acak di database, cookie `httpOnly`,
+middleware peran, CORS ditulis sendiri. Endpoint: `register`, `login`,
+`logout`, `me`.
+
+64 test lulus.
+
+Berikutnya: menu & tanggal layanan (Fase 3), lalu inti pemesanan (Fase 4).
