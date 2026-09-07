@@ -135,7 +135,7 @@ dist/
     "migrate": "node --env-file=.env scripts/migrate.js",
     "migrate:test": "node --env-file=.env.test scripts/migrate.js",
     "seed": "node --env-file=.env scripts/seed.js",
-    "test": "node --env-file=.env.test --test tests/"
+    "test": "node --env-file=.env.test --test --test-concurrency=1"
   },
   "dependencies": {
     "pg": "^8.13.0"
