@@ -6,6 +6,7 @@ import {
   tutupTanggalLayanan,
 } from '../services/menu.js';
 import { daftarTopupPending, setujuiTopup, tolakTopup } from '../services/saldo.js';
+import { daftarProduksi, daftarAntar, tandaiTerkirim } from '../services/dapur.js';
 import { wajibPeran } from '../auth/middleware.js';
 
 export const routerKitchen = Router();
@@ -46,4 +47,16 @@ routerKitchen.post('/topups/:id/approve', async (req, res) => {
 
 routerKitchen.post('/topups/:id/reject', async (req, res) => {
   res.json(await tolakTopup({ reviewerId: req.user.id, topupId: req.params.id }));
+});
+
+routerKitchen.get('/production', async (req, res) => {
+  res.json(await daftarProduksi(req.query.tanggal));
+});
+
+routerKitchen.get('/deliveries', async (req, res) => {
+  res.json(await daftarAntar(req.query.tanggal));
+});
+
+routerKitchen.post('/orders/:id/deliver', async (req, res) => {
+  res.json(await tandaiTerkirim(req.params.id));
 });

@@ -118,7 +118,11 @@ antara keduanya; uji perebutan dibuktikan mendeteksi versi naif.
 dikonfirmasi dapur, buku besar sebagai sumber kebenaran, dan endpoint HTTP
 untuk seluruh alur pelanggan.
 
-139 test lulus.
+**Fase 6 — dasbor dapur.** Daftar produksi harian (berapa porsi tiap menu yang
+harus dimasak) dan daftar antar (siapa, ke mana, apa isinya), plus penandaan
+pesanan terkirim. Jumlah produksi dihitung ulang dari pesanan yang sebenarnya,
+bukan dibaca dari kolom `terjual` — ada test yang menjaga keduanya selalu sama.
 
-Berikutnya: dasbor dapur — daftar produksi & daftar antar (Fase 6), lalu
-frontend React (Fase 7).
+159 test lulus.
+
+Berikutnya: frontend React untuk kedua peran (Fase 7).

@@ -9,6 +9,7 @@ import {
   SaldoTidakCukup,
   PesananTidakDitemukan,
   PesananSudahDibatalkan,
+  PesananSudahDikirim,
   TidakBerwenang,
 } from '../errors.js';
 
@@ -193,7 +194,8 @@ export async function batalkanPesanan({ userId, orderId }) {
     // pesanan orang lain menghasilkan 403. Membalik keduanya akan memberi tahu
     // penyerang id mana yang benar-benar ada.
     if (Number(pesanan.user_id) !== Number(userId)) throw new TidakBerwenang();
-    if (pesanan.status !== 'confirmed') throw new PesananSudahDibatalkan();
+    if (pesanan.status === 'cancelled') throw new PesananSudahDibatalkan();
+    if (pesanan.status === 'delivered') throw new PesananSudahDikirim();
     if (!pesanan.boleh) throw new LewatBatasWaktu();
 
     // Pemeriksaan di atas hanya untuk memberi pesan yang tepat. Yang MENJAMIN

@@ -1,6 +1,5 @@
 import { pool, withTransaction } from '../db.js';
 import {
-  TanggalTidakValid,
   BatasWaktuTidakValid,
   TanggalSudahDibuka,
   TanggalLayananTidakDitemukan,
@@ -9,24 +8,9 @@ import {
   KuotaTidakValid,
   HargaTidakValid,
   DaftarMenuKosong,
+  NamaKosong,
 } from '../errors.js';
-
-const POLA_TANGGAL = /^\d{4}-\d{2}-\d{2}$/;
-
-/**
- * Memastikan string benar-benar tanggal yang ada.
- * Regex saja tidak cukup — '2026-02-30' lolos pola tapi bukan tanggal nyata.
- * Perbandingan lewat UTC dipakai supaya hasilnya tidak bergantung zona waktu
- * mesin yang menjalankan.
- */
-function validasiTanggal(tanggal) {
-  if (typeof tanggal !== 'string' || !POLA_TANGGAL.test(tanggal)) throw new TanggalTidakValid();
-  const d = new Date(`${tanggal}T00:00:00Z`);
-  if (Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== tanggal) {
-    throw new TanggalTidakValid();
-  }
-  return tanggal;
-}
+import { validasiTanggal } from '../util/tanggal.js';
 
 function validasiRupiah(nilai, Kesalahan) {
   if (!Number.isInteger(nilai) || nilai <= 0) throw new Kesalahan();
@@ -34,7 +18,7 @@ function validasiRupiah(nilai, Kesalahan) {
 }
 
 export async function buatMenuItem({ nama, deskripsi = '', harga }) {
-  if (typeof nama !== 'string' || nama.trim() === '') throw new TanggalTidakValid();
+  if (typeof nama !== 'string' || nama.trim() === '') throw new NamaKosong();
   validasiRupiah(harga, HargaTidakValid);
 
   const { rows } = await pool.query(

@@ -179,3 +179,9 @@ export class TopupSudahDitinjau extends KesalahanDomain {
     super('TOPUP_SUDAH_DITINJAU', 'Pengajuan ini sudah pernah ditinjau.', 409);
   }
 }
+
+export class PesananSudahDikirim extends KesalahanDomain {
+  constructor() {
+    super('PESANAN_SUDAH_DIKIRIM', 'Pesanan ini sudah ditandai terkirim.', 409);
+  }
+}
