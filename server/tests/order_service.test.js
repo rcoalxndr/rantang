@@ -1,7 +1,7 @@
 import test, { after, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { pool, withTransaction } from '../src/db.js';
-import { resetDatabase } from './helper.js';
+import { resetDatabase, panaskanPool } from './helper.js';
 import { buatMenuItem, bukaTanggalLayanan, tutupTanggalLayanan } from '../src/services/menu.js';
 import {
   buatPesanan,
@@ -500,7 +500,10 @@ test('jumlah buku besar selalu sama dengan kolom saldo', async () => {
   await batalkanPesanan({ userId, orderId: p1.id });
 
   const { rows } = await pool.query(
-    `SELECT u.saldo, COALESCE(SUM(l.jumlah), 0) AS total_buku
+    // SUM() atas BIGINT menghasilkan NUMERIC di PostgreSQL supaya penjumlahan
+    // besar tidak meluap. NUMERIC kembali sebagai string, jadi dicast balik ke
+    // BIGINT agar sebanding dengan kolom saldo.
+    `SELECT u.saldo, COALESCE(SUM(l.jumlah), 0)::bigint AS total_buku
      FROM users u LEFT JOIN credit_ledger l ON l.user_id = u.id
      WHERE u.id = $1 GROUP BY u.saldo`,
     [userId]
@@ -517,6 +520,8 @@ test('20 pemesanan bersamaan untuk 1 porsi terakhir: tepat 1 berhasil', async ()
 
   const pelanggan = [];
   for (let i = 0; i < 20; i++) pelanggan.push(await buatPelanggan(100000));
+
+  await panaskanPool();
 
   const hasil = await Promise.allSettled(
     pelanggan.map((userId) =>
@@ -549,6 +554,8 @@ test('20 pemesanan bersamaan untuk 1 porsi terakhir: tepat 1 berhasil', async ()
 test('5 pemesanan bersamaan dari satu orang yang saldonya cuma cukup 1: tepat 1 berhasil', async () => {
   const { dailyMenuItemId } = await siapkanHari({ kuota: 100 });
   const userId = await buatPelanggan(HARGA);
+
+  await panaskanPool();
 
   const hasil = await Promise.allSettled(
     Array.from({ length: 5 }, () =>

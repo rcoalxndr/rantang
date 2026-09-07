@@ -22,7 +22,12 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+// Jumlah koneksi maksimum di pool. Bisa diatur lewat PG_MAX supaya uji
+// perebutan bisa menaikkannya saat perlu.
+export const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: Number(process.env.PG_MAX ?? 10),
+});
 
 export async function withTransaction(fn) {
   const client = await pool.connect();
