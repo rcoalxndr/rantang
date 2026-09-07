@@ -44,6 +44,10 @@ npm run migrate
 npm run seed
 ```
 
+Seed membuat tiga akun contoh — `dapur@rantang.test` (peran dapur),
+`rico@contoh.test`, `sinta@contoh.test` — semuanya dengan kata sandi
+`rantang-demo-2026`. Hanya untuk database pengembangan di mesin sendiri.
+
 ## Test
 
 ```bash
@@ -98,6 +102,12 @@ pesanan.
 middleware peran, CORS ditulis sendiri. Endpoint: `register`, `login`,
 `logout`, `me`.
 
-64 test lulus.
+**Fase 3 — menu & tanggal layanan.** Dapur mengelola katalog menu, membuka
+tanggal layanan dengan kuota dan batas waktu, serta menutupnya. Pelanggan (dan
+siapa pun) bisa melihat menu per tanggal beserta sisa porsi. Harga di-snapshot
+per tanggal sehingga perubahan harga katalog tidak mengubah tanggal yang sudah
+dibuka.
 
-Berikutnya: menu & tanggal layanan (Fase 3), lalu inti pemesanan (Fase 4).
+91 test lulus.
+
+Berikutnya: inti pemesanan — kuota, saldo, dan race condition (Fase 4).

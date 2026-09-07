@@ -1,11 +1,14 @@
 import { pool, withTransaction } from '../src/db.js';
+import { hashPassword } from '../src/auth/password.js';
 
-// CATATAN: password_hash di sini masih teks palsu. Fase 2 akan mengganti skrip
-// ini agar memakai bcrypt sungguhan. Jangan pernah memakai pola ini di luar
-// data contoh lokal.
-const HASH_PALSU = 'BELUM_DI_HASH_ganti_di_fase_2';
+// Kata sandi seragam untuk semua akun contoh. Ini HANYA untuk database
+// pengembangan di mesin sendiri — tidak pernah dipakai di mana pun selain di
+// sini, dan skrip ini tidak boleh dijalankan terhadap data sungguhan.
+const KATA_SANDI_CONTOH = 'rantang-demo-2026';
 
 async function seed() {
+  const hash = await hashPassword(KATA_SANDI_CONTOH);
+
   await withTransaction(async (c) => {
     await c.query(`
       TRUNCATE order_items, orders, credit_ledger, topup_requests,
@@ -16,7 +19,7 @@ async function seed() {
     await c.query(
       `INSERT INTO users (email, password_hash, nama, telepon, alamat, peran)
        VALUES ('dapur@rantang.test', $1, 'Dapur Rantang', '0800000000', 'Dapur Pusat', 'kitchen')`,
-      [HASH_PALSU]
+      [hash]
     );
 
     await c.query(
@@ -24,7 +27,7 @@ async function seed() {
        VALUES
          ('rico@contoh.test',  $1, 'Rico',  '0811111111', 'Jl. Melati No. 12', 'customer', 250000),
          ('sinta@contoh.test', $1, 'Sinta', '0822222222', 'Jl. Kenanga No. 4', 'customer', 64000)`,
-      [HASH_PALSU]
+      [hash]
     );
 
     const menu = await c.query(`
@@ -36,13 +39,18 @@ async function seed() {
     `);
     const [m1, m2, m3] = menu.rows.map((r) => r.id);
 
-    // Dua tanggal layanan: besok dan lusa, relatif terhadap hari ini di WIB.
+    // Dua tanggal layanan: besok dan lusa, menurut kalender WIB.
+    // Batas pesan dipatok pukul 06.00 WIB pada hari layanan itu sendiri —
+    // selalu masih di masa depan, sehingga data contoh benar-benar bisa dipesan
+    // kapan pun seed dijalankan. Di dunia nyata batasnya kemungkinan malam
+    // sebelumnya, tapi data contoh yang sudah kedaluwarsa begitu dibuat tidak
+    // ada gunanya.
     await c.query(`
       INSERT INTO service_days (tanggal, batas_waktu_pesan) VALUES
         ((now() AT TIME ZONE 'Asia/Jakarta')::date + 1,
-         ((now() AT TIME ZONE 'Asia/Jakarta')::date + INTERVAL '20 hours') AT TIME ZONE 'Asia/Jakarta'),
+         (((now() AT TIME ZONE 'Asia/Jakarta')::date + 1)::timestamp + INTERVAL '6 hours') AT TIME ZONE 'Asia/Jakarta'),
         ((now() AT TIME ZONE 'Asia/Jakarta')::date + 2,
-         ((now() AT TIME ZONE 'Asia/Jakarta')::date + INTERVAL '1 day 20 hours') AT TIME ZONE 'Asia/Jakarta')
+         (((now() AT TIME ZONE 'Asia/Jakarta')::date + 2)::timestamp + INTERVAL '6 hours') AT TIME ZONE 'Asia/Jakarta')
     `);
 
     await c.query(
@@ -56,6 +64,8 @@ async function seed() {
   });
 
   console.log('Data contoh berhasil dimasukkan.');
+  console.log(`Akun contoh: dapur@rantang.test / rico@contoh.test / sinta@contoh.test`);
+  console.log(`Kata sandi semuanya: ${KATA_SANDI_CONTOH}`);
 }
 
 seed()

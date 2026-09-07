@@ -4,6 +4,8 @@ import { lampirkanSesi } from './auth/middleware.js';
 import { cors } from './http/cors.js';
 import { KesalahanDomain } from './errors.js';
 import { routerAuth } from './routes/auth.js';
+import { routerMenu } from './routes/menu.js';
+import { routerKitchen } from './routes/kitchen.js';
 
 /**
  * Penanganan error terpusat.
@@ -34,6 +36,8 @@ export function buatApp() {
 
   app.get('/api/health', (_req, res) => res.json({ ok: true }));
   app.use('/api/auth', routerAuth);
+  app.use('/api', routerMenu);
+  app.use('/api/kitchen', routerKitchen);
 
   app.use((_req, res) => {
     res.status(404).json({ error: { code: 'TIDAK_DITEMUKAN', message: 'Endpoint tidak ada.' } });
