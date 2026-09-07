@@ -79,6 +79,8 @@ docs/
 
 - Desain: `docs/superpowers/specs/2026-09-07-rantang-pemesanan-design.md`
 - Rencana Fase 0–1: `docs/superpowers/plans/2026-09-07-fase-0-1-fondasi.md`
+- Catatan Fase 2: `docs/superpowers/plans/2026-09-07-fase-2-auth.md`
+- Panduan Fase 4: `docs/superpowers/plans/2026-09-07-fase-4-pemesanan.md`
 
 ## Menjalankan server
 
@@ -102,6 +104,12 @@ pesanan.
 middleware peran, CORS ditulis sendiri. Endpoint: `register`, `login`,
 `logout`, `me`.
 
+**Fase 3 — menu & tanggal layanan.** Dapur mengelola katalog menu, membuka
+tanggal layanan dengan kuota dan batas waktu, serta menutupnya. Pelanggan (dan
+siapa pun) bisa melihat menu per tanggal beserta sisa porsi. Harga di-snapshot
+per tanggal sehingga perubahan harga katalog tidak mengubah tanggal yang sudah
+dibuka.
+
 **Fase 4 — inti pemesanan.** Kuota, saldo, transaksi, pembatalan. Pemeriksaan
 dan penulisan disatukan dalam satu `UPDATE ... WHERE` sehingga tidak ada celah
 antara keduanya; uji perebutan dibuktikan mendeteksi versi naif.
@@ -109,12 +117,6 @@ antara keduanya; uji perebutan dibuktikan mendeteksi versi naif.
 **Fase 5 — saldo prabayar.** Pengisian saldo lewat transfer manual yang
 dikonfirmasi dapur, buku besar sebagai sumber kebenaran, dan endpoint HTTP
 untuk seluruh alur pelanggan.
-
-**Fase 3 — menu & tanggal layanan.** Dapur mengelola katalog menu, membuka
-tanggal layanan dengan kuota dan batas waktu, serta menutupnya. Pelanggan (dan
-siapa pun) bisa melihat menu per tanggal beserta sisa porsi. Harga di-snapshot
-per tanggal sehingga perubahan harga katalog tidak mengubah tanggal yang sudah
-dibuka.
 
 139 test lulus.
 
