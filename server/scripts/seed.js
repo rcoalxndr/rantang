@@ -22,13 +22,26 @@ async function seed() {
       [hash]
     );
 
-    await c.query(
+    // Saldo awal ditulis bersama barisnya di buku besar, bukan langsung ke
+    // kolom saldo. Aturan sistem ini adalah SUM(credit_ledger) selalu sama
+    // dengan users.saldo — data contoh tidak boleh jadi satu-satunya tempat
+    // aturan itu dilanggar.
+    const pelanggan = await c.query(
       `INSERT INTO users (email, password_hash, nama, telepon, alamat, peran, saldo)
        VALUES
          ('rico@contoh.test',  $1, 'Rico',  '0811111111', 'Jl. Melati No. 12', 'customer', 250000),
-         ('sinta@contoh.test', $1, 'Sinta', '0822222222', 'Jl. Kenanga No. 4', 'customer', 64000)`,
+         ('sinta@contoh.test', $1, 'Sinta', '0822222222', 'Jl. Kenanga No. 4', 'customer', 64000)
+       RETURNING id, saldo`,
       [hash]
     );
+
+    for (const u of pelanggan.rows) {
+      await c.query(
+        `INSERT INTO credit_ledger (user_id, jumlah, jenis, catatan)
+         VALUES ($1, $2, 'topup', 'saldo awal data contoh')`,
+        [u.id, u.saldo]
+      );
+    }
 
     const menu = await c.query(`
       INSERT INTO menu_items (nama, deskripsi, harga) VALUES

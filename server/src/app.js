@@ -6,6 +6,7 @@ import { KesalahanDomain } from './errors.js';
 import { routerAuth } from './routes/auth.js';
 import { routerMenu } from './routes/menu.js';
 import { routerKitchen } from './routes/kitchen.js';
+import { routerPesanan, routerTopup, routerSaldo } from './routes/pelanggan.js';
 
 /**
  * Penanganan error terpusat.
@@ -38,6 +39,9 @@ export function buatApp() {
   app.use('/api/auth', routerAuth);
   app.use('/api', routerMenu);
   app.use('/api/kitchen', routerKitchen);
+  app.use('/api/orders', routerPesanan);
+  app.use('/api/topups', routerTopup);
+  app.use('/api/balance', routerSaldo);
 
   app.use((_req, res) => {
     res.status(404).json({ error: { code: 'TIDAK_DITEMUKAN', message: 'Endpoint tidak ada.' } });

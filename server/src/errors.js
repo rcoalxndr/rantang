@@ -161,3 +161,21 @@ export class PesananSudahDibatalkan extends KesalahanDomain {
     super('PESANAN_SUDAH_DIBATALKAN', 'Pesanan ini sudah dibatalkan sebelumnya.', 409);
   }
 }
+
+export class NominalTidakValid extends KesalahanDomain {
+  constructor() {
+    super('NOMINAL_TIDAK_VALID', 'Nominal harus bilangan bulat rupiah lebih dari nol.', 422);
+  }
+}
+
+export class TopupTidakDitemukan extends KesalahanDomain {
+  constructor() {
+    super('TOPUP_TIDAK_DITEMUKAN', 'Pengajuan isi saldo tidak ditemukan.', 404);
+  }
+}
+
+export class TopupSudahDitinjau extends KesalahanDomain {
+  constructor() {
+    super('TOPUP_SUDAH_DITINJAU', 'Pengajuan ini sudah pernah ditinjau.', 409);
+  }
+}

@@ -102,12 +102,21 @@ pesanan.
 middleware peran, CORS ditulis sendiri. Endpoint: `register`, `login`,
 `logout`, `me`.
 
+**Fase 4 — inti pemesanan.** Kuota, saldo, transaksi, pembatalan. Pemeriksaan
+dan penulisan disatukan dalam satu `UPDATE ... WHERE` sehingga tidak ada celah
+antara keduanya; uji perebutan dibuktikan mendeteksi versi naif.
+
+**Fase 5 — saldo prabayar.** Pengisian saldo lewat transfer manual yang
+dikonfirmasi dapur, buku besar sebagai sumber kebenaran, dan endpoint HTTP
+untuk seluruh alur pelanggan.
+
 **Fase 3 — menu & tanggal layanan.** Dapur mengelola katalog menu, membuka
 tanggal layanan dengan kuota dan batas waktu, serta menutupnya. Pelanggan (dan
 siapa pun) bisa melihat menu per tanggal beserta sisa porsi. Harga di-snapshot
 per tanggal sehingga perubahan harga katalog tidak mengubah tanggal yang sudah
 dibuka.
 
-91 test lulus.
+139 test lulus.
 
-Berikutnya: inti pemesanan — kuota, saldo, dan race condition (Fase 4).
+Berikutnya: dasbor dapur — daftar produksi & daftar antar (Fase 6), lalu
+frontend React (Fase 7).
