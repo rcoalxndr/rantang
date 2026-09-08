@@ -1,6 +1,8 @@
 import { pool } from '../src/db.js';
 
 const TABEL_DATA = [
+  'kunci_idempotensi',
+  'pembatasan_laju',
   'order_items',
   'orders',
   'credit_ledger',

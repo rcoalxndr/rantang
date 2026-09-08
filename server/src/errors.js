@@ -185,3 +185,19 @@ export class PesananSudahDikirim extends KesalahanDomain {
     super('PESANAN_SUDAH_DIKIRIM', 'Pesanan ini sudah ditandai terkirim.', 409);
   }
 }
+
+export class TerlaluSeringMencoba extends KesalahanDomain {
+  constructor() {
+    super('TERLALU_SERING_MENCOBA', 'Terlalu banyak percobaan. Coba lagi beberapa saat.', 429);
+  }
+}
+
+export class KunciIdempotensiDipakaiUlang extends KesalahanDomain {
+  constructor() {
+    super(
+      'KUNCI_IDEMPOTENSI_DIPAKAI_ULANG',
+      'Kunci permintaan ini sudah dipakai untuk pesanan lain.',
+      409
+    );
+  }
+}

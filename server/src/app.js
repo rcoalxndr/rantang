@@ -5,6 +5,7 @@ import express from 'express';
 import { bacaCookie } from './auth/cookie.js';
 import { lampirkanSesi } from './auth/middleware.js';
 import { cors } from './http/cors.js';
+import { headerKeamanan } from './http/keamanan.js';
 import { KesalahanDomain } from './errors.js';
 import { routerAuth } from './routes/auth.js';
 import { routerMenu } from './routes/menu.js';
@@ -46,7 +47,12 @@ export function buatApp() {
   // jebakan deploy paling umum untuk aplikasi yang memakai cookie sesi.
   app.set('trust proxy', 1);
 
-  app.use(express.json());
+  app.use(headerKeamanan);
+
+  // Batas ukuran badan permintaan. Tanpa ini, siapa pun bisa mengirim JSON
+  // puluhan megabyte dan memaksa server memarsingnya. Tidak ada endpoint di
+  // aplikasi ini yang butuh lebih dari beberapa kilobyte.
+  app.use(express.json({ limit: '32kb' }));
   app.use(bacaCookie);
   app.use(cors);
   app.use(lampirkanSesi);

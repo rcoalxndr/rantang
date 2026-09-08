@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from '../api.js';
 import { keRupiah, keTanggal, keWaktu } from '../format.js';
 
@@ -10,6 +10,19 @@ export function Menu({ keDeposit }) {
   const [galat, setGalat] = useState(null);
   const [sukses, setSukses] = useState(null);
   const [sibuk, setSibuk] = useState(false);
+
+  /**
+   * Kunci idempotensi untuk niat memesan yang sedang berjalan.
+   *
+   * Dibuat sekali lalu dipertahankan sampai pesanannya benar-benar jadi. Kalau
+   * tombol tertekan dua kali — atau jaringan mengulang permintaan tanpa
+   * sepengetahuan kita — kunci yang sama terkirim, dan server mengembalikan
+   * pesanan yang sama alih-alih membuat yang kedua.
+   *
+   * Menonaktifkan tombol saat sibuk saja tidak cukup: klik kedua bisa terkirim
+   * sebelum React sempat memperbarui tampilannya.
+   */
+  const kunci = useRef(null);
 
   useEffect(() => {
     api
@@ -45,7 +58,15 @@ export function Menu({ keDeposit }) {
         .map(([id, n]) => ({ dailyMenuItemId: Number(id), jumlah: Number(n) }))
         .filter((i) => i.jumlah > 0);
 
-      const d = await api.post('/orders', { tanggal: dipilih, item });
+      kunci.current ??= crypto.randomUUID();
+      const d = await api.post(
+        '/orders',
+        { tanggal: dipilih, item },
+        { 'Idempotency-Key': kunci.current }
+      );
+
+      // Pesanan sudah jadi; niat berikutnya adalah niat yang baru.
+      kunci.current = null;
       setSukses(`Pesanan #${d.pesanan.id} masuk. ${keRupiah(d.pesanan.total)} dipotong dari deposit toko.`);
       setJumlah({});
       setHari(await api.get(`/menu?tanggal=${dipilih}`));

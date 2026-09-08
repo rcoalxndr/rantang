@@ -271,9 +271,14 @@ harus dimasak) dan daftar kirim (toko mana, PIC siapa, ke mana, apa isinya),
 plus penandaan pesanan terkirim. Jumlah produksi dihitung ulang dari pesanan yang sebenarnya,
 bukan dibaca dari kolom `terjual` — ada test yang menjaga keduanya selalu sama.
 
+**Fase 9 — pengerasan produksi.** Pembatasan laju berbasis database (percobaan
+masuk dibatasi per email, pendaftaran per alamat IP), kunci idempotensi supaya
+klik ganda tidak menghasilkan dua pesanan dengan dua potongan deposit, header
+keamanan, dan batas ukuran permintaan.
+
 **Fase 7 — frontend React.** Enam layar untuk dua peran: pesan, pesanan toko,
 deposit dan riwayat mutasi untuk toko; hari produksi (produksi + kirim) dan
 kelola (antrean deposit, buka hari, katalog) untuk dapur. Tanpa
 pustaka routing maupun pengambil data — React, Vite, dan `fetch` saja.
 
-159 test lulus. Backend dan frontend keduanya berjalan.
+167 test lulus. Backend dan frontend keduanya berjalan, dan aplikasinya hidup di internet.

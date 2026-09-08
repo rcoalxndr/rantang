@@ -15,12 +15,15 @@ export class KesalahanApi extends Error {
   }
 }
 
-async function minta(jalur, { method = 'GET', body } = {}) {
+async function minta(jalur, { method = 'GET', body, headers } = {}) {
   let res;
   try {
     res = await fetch(`/api${jalur}`, {
       method,
-      headers: body ? { 'Content-Type': 'application/json' } : undefined,
+      headers: {
+        ...(body ? { 'Content-Type': 'application/json' } : {}),
+        ...(headers ?? {}),
+      },
       body: body ? JSON.stringify(body) : undefined,
       // Cookie sesi httpOnly ikut terkirim. 'same-origin' cukup karena proxy
       // Vite membuat frontend dan backend berbagi asal yang sama.
@@ -48,5 +51,5 @@ async function minta(jalur, { method = 'GET', body } = {}) {
 
 export const api = {
   get: (jalur) => minta(jalur),
-  post: (jalur, body) => minta(jalur, { method: 'POST', body }),
+  post: (jalur, body, headers) => minta(jalur, { method: 'POST', body, headers }),
 };

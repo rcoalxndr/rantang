@@ -4,6 +4,8 @@ import {
   batalkanPesanan,
   lihatPesanan,
   lihatPesananSaya,
+  PermintaanKembar,
+  tungguPesananKunci,
 } from '../services/order.js';
 import { ajukanTopup, daftarTopupSaya, lihatSaldo } from '../services/saldo.js';
 import { wajibMasuk } from '../auth/middleware.js';
@@ -27,8 +29,32 @@ routerPesanan.use(wajibMasuk);
 
 routerPesanan.post('/', async (req, res) => {
   const { tanggal, item } = req.body ?? {};
-  const pesanan = await buatPesanan({ userId: req.user.id, tanggal, item });
-  res.status(201).json({ pesanan });
+
+  // Klien boleh mengirim kunci acak sekali per niat memesan. Header standar
+  // untuk ini adalah Idempotency-Key; dipakai luas oleh API pembayaran karena
+  // masalahnya sama persis — permintaan yang diulang tidak boleh berarti uang
+  // terpotong dua kali.
+  const kunciIdempotensi = req.get('Idempotency-Key') || null;
+
+  try {
+    const pesanan = await buatPesanan({
+      userId: req.user.id,
+      tanggal,
+      item,
+      kunciIdempotensi,
+    });
+    res.status(201).json({ pesanan });
+  } catch (err) {
+    // Permintaan kembar yang tiba benar-benar bersamaan: yang ini kalah di
+    // PRIMARY KEY. Tunggu sebentar sampai kembarannya selesai, lalu kembalikan
+    // pesanan yang sama — dari sudut pandang pemakai, kedua klik berhasil dan
+    // menghasilkan satu pesanan.
+    if (err instanceof PermintaanKembar) {
+      const pesanan = await tungguPesananKunci(kunciIdempotensi, req.user.id);
+      return res.status(200).json({ pesanan });
+    }
+    throw err;
+  }
 });
 
 routerPesanan.get('/', async (req, res) => {

@@ -11,6 +11,7 @@ import {
   PesananSudahDibatalkan,
   PesananSudahDikirim,
   TidakBerwenang,
+  KunciIdempotensiDipakaiUlang,
 } from '../errors.js';
 
 /**
@@ -89,10 +90,38 @@ function tanpaUserId(pesanan) {
   return sisanya;
 }
 
-export async function buatPesanan({ userId, tanggal, item }) {
+export async function buatPesanan({ userId, tanggal, item, kunciIdempotensi = null }) {
   validasiItem(item);
 
+  // Kalau klien mengirim kunci dan kunci itu sudah pernah dipakai, kembalikan
+  // pesanan yang SAMA alih-alih membuat yang baru. Ini yang membuat klik ganda,
+  // tombol yang ditekan dua kali, atau jaringan yang mengulang permintaan tidak
+  // berubah jadi dua pesanan dengan dua potongan deposit.
+  if (kunciIdempotensi) {
+    const sudah = await bacaKunci(pool, kunciIdempotensi);
+    if (sudah) {
+      if (Number(sudah.user_id) !== Number(userId)) throw new KunciIdempotensiDipakaiUlang();
+      if (sudah.order_id) return tanpaUserId(await bacaPesanan(pool, sudah.order_id));
+    }
+  }
+
   const pesanan = await withTransaction(async (c) => {
+    // Kunci disisipkan DI DALAM transaksi. Kalau dua permintaan kembar tiba
+    // bersamaan, yang kedua ditolak oleh batasan PRIMARY KEY — pola yang sama
+    // dengan email ganda di services/user.js: biarkan database yang memutuskan,
+    // jangan memeriksa lebih dulu lalu menulis.
+    if (kunciIdempotensi) {
+      try {
+        await c.query(
+          'INSERT INTO kunci_idempotensi (kunci, user_id) VALUES ($1, $2)',
+          [kunciIdempotensi, userId]
+        );
+      } catch (err) {
+        if (err.code === '23505') throw new PermintaanKembar();
+        throw err;
+      }
+    }
+
     await gerbangWaktu(c, tanggal);
 
     // Harga diambil dari daily_menu_items, BUKAN dari menu_items. Yang berlaku
@@ -170,11 +199,53 @@ export async function buatPesanan({ userId, tanggal, item }) {
       [userId, -total, orderId, `pesanan #${orderId}`]
     );
 
+    if (kunciIdempotensi) {
+      await c.query('UPDATE kunci_idempotensi SET order_id = $2 WHERE kunci = $1', [
+        kunciIdempotensi,
+        orderId,
+      ]);
+    }
+
     return bacaPesanan(c, orderId);
   });
 
   return tanpaUserId(pesanan);
 }
+
+/** Membaca catatan kunci idempotensi, null kalau belum pernah dipakai. */
+async function bacaKunci(klien, kunci) {
+  const { rows } = await klien.query(
+    'SELECT kunci, user_id, order_id FROM kunci_idempotensi WHERE kunci = $1',
+    [kunci]
+  );
+  return rows[0] ?? null;
+}
+
+/**
+ * Dilempar saat permintaan kembar tiba benar-benar bersamaan — yang kedua kalah
+ * di PRIMARY KEY sebelum yang pertama sempat menyimpan nomor pesanannya.
+ * Ditangani di lapisan route: tunggu sebentar, lalu kembalikan pesanan yang
+ * sudah dibuat permintaan pertama.
+ */
+class PermintaanKembar extends Error {}
+
+/**
+ * Menunggu sampai pesanan milik sebuah kunci selesai dibuat.
+ * Dipakai ketika permintaan kembar kalah balapan.
+ */
+async function tungguPesananKunci(kunci, userId, percobaan = 10) {
+  for (let i = 0; i < percobaan; i++) {
+    const catatan = await bacaKunci(pool, kunci);
+    if (catatan?.order_id) {
+      if (Number(catatan.user_id) !== Number(userId)) throw new KunciIdempotensiDipakaiUlang();
+      return tanpaUserId(await bacaPesanan(pool, catatan.order_id));
+    }
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  throw new KunciIdempotensiDipakaiUlang();
+}
+
+export { PermintaanKembar, tungguPesananKunci };
 
 export async function batalkanPesanan({ userId, orderId }) {
   await withTransaction(async (c) => {
