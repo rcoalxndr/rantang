@@ -1,3 +1,6 @@
+import { existsSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import express from 'express';
 import { bacaCookie } from './auth/cookie.js';
 import { lampirkanSesi } from './auth/middleware.js';
@@ -7,6 +10,13 @@ import { routerAuth } from './routes/auth.js';
 import { routerMenu } from './routes/menu.js';
 import { routerDapur } from './routes/dapur.js';
 import { routerPesanan, routerTopup, routerSaldo } from './routes/toko.js';
+
+/** Hasil build frontend. Ada di produksi, biasanya tidak ada saat pengembangan. */
+const DIST = fileURLToPath(new URL('../../web/dist/', import.meta.url));
+
+function tidakDitemukan(_req, res) {
+  res.status(404).json({ error: { code: 'TIDAK_DITEMUKAN', message: 'Endpoint tidak ada.' } });
+}
 
 /**
  * Penanganan error terpusat.
@@ -30,6 +40,12 @@ function penanganError(err, _req, res, _next) {
 export function buatApp() {
   const app = express();
 
+  // Di produksi, aplikasi berada di belakang proxy milik penyedia hosting.
+  // Tanpa baris ini Express melihat koneksinya sebagai HTTP biasa, menolak
+  // memasang cookie `Secure`, dan login gagal tanpa pesan error apa pun —
+  // jebakan deploy paling umum untuk aplikasi yang memakai cookie sesi.
+  app.set('trust proxy', 1);
+
   app.use(express.json());
   app.use(bacaCookie);
   app.use(cors);
@@ -43,9 +59,25 @@ export function buatApp() {
   app.use('/api/topups', routerTopup);
   app.use('/api/balance', routerSaldo);
 
-  app.use((_req, res) => {
-    res.status(404).json({ error: { code: 'TIDAK_DITEMUKAN', message: 'Endpoint tidak ada.' } });
-  });
+  // Jalur /api yang tidak dikenal selalu dijawab JSON, tidak pernah HTML.
+  // Ditempatkan sebelum penyajian berkas statis supaya klien API tidak pernah
+  // menerima halaman React sebagai jawaban atas endpoint yang salah ketik.
+  app.use('/api', tidakDitemukan);
+
+  /**
+   * Di produksi, server yang sama menyajikan hasil build React.
+   *
+   * Satu layanan, bukan dua: lebih murah, dan yang lebih penting — frontend
+   * dan backend jadi satu asal, sehingga cookie sesi bekerja apa adanya dan
+   * CORS tidak dibutuhkan sama sekali. Saat pengembangan, peran ini dipegang
+   * proxy Vite dan folder dist belum ada, jadi blok ini dilewati.
+   */
+  if (existsSync(DIST)) {
+    app.use(express.static(DIST));
+    app.use((_req, res) => res.sendFile(path.join(DIST, 'index.html')));
+  } else {
+    app.use(tidakDitemukan);
+  }
 
   // Express 5 meneruskan promise yang ditolak dari handler async ke sini
   // secara otomatis; di Express 4 setiap handler harus dibungkus try/catch.

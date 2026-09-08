@@ -141,6 +141,58 @@ npm test
 Test dijalankan serial (`--test-concurrency=1`). Ketiga berkas test berbagi
 satu database dan saling menimpa kalau berjalan paralel.
 
+## Deploy
+
+Satu layanan saja: Express menyajikan hasil build React sekaligus API-nya, jadi
+frontend dan backend berbagi asal yang sama — cookie sesi bekerja apa adanya dan
+CORS tidak dibutuhkan di produksi.
+
+Database dan server sengaja dipisah ke dua penyedia dengan tingkat gratis yang
+tidak berbatas waktu.
+
+### 1. Database — Neon
+
+Buat project baru, salin connection string-nya (sudah termasuk `?sslmode=require`).
+
+### 2. Server — Render
+
+**New → Web Service**, hubungkan ke repo ini, lalu isi:
+
+| Kolom | Nilai |
+|---|---|
+| Build Command | `cd server && npm ci && cd ../web && npm ci && npm run build` |
+| Pre-Deploy Command | `cd server && npm run migrate` |
+| Start Command | `cd server && npm start` |
+| Instance Type | Free |
+
+Variabel lingkungan:
+
+```
+DATABASE_URL   = (connection string dari Neon)
+NODE_ENV       = production
+COOKIE_SECURE  = true
+```
+
+`PORT` diisi Render sendiri, jangan diatur manual.
+
+### 3. Data contoh (opsional)
+
+Lewat **Shell** di dasbor Render:
+
+```bash
+cd server && IZINKAN_SEED_PRODUKSI=ya npm run seed
+```
+
+Skrip seed diawali `TRUNCATE` seluruh tabel, jadi ia menolak jalan di produksi
+kecuali variabel itu diberikan secara sengaja.
+
+### Batasan tingkat gratis
+
+Instance gratis Render **tidur setelah 15 menit tanpa lalu lintas**, dan bangun
+lagi sekitar satu menit saat ada kunjungan berikutnya. Untuk demo portofolio ini
+disengaja: tidak ada kartu kredit, tidak ada tagihan yang bisa muncul mendadak,
+dan tidak ada kredit yang habis lalu berubah jadi biaya.
+
 ## Struktur
 
 ```

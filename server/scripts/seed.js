@@ -6,7 +6,32 @@ import { hashPassword } from '../src/auth/password.js';
 // sini, dan skrip ini tidak boleh dijalankan terhadap data sungguhan.
 const KATA_SANDI_CONTOH = 'rantang-demo-2026';
 
+/**
+ * Penjagaan produksi.
+ *
+ * Skrip ini diawali TRUNCATE seluruh tabel. Di laptop itu tidak apa-apa; di
+ * database yang sedang dipakai orang, itu menghapus semuanya dalam sekejap
+ * tanpa bisa dibatalkan.
+ *
+ * Karena itu di produksi skrip menolak jalan kecuali diminta secara eksplisit
+ * lewat IZINKAN_SEED_PRODUKSI=ya. Satu variabel yang harus diketik sengaja
+ * adalah pembeda antara "menyiapkan data demo" dan "kehilangan segalanya
+ * karena salah tekan panah atas di terminal".
+ */
+function periksaIzin() {
+  if (process.env.NODE_ENV !== 'production') return;
+  if (process.env.IZINKAN_SEED_PRODUKSI === 'ya') {
+    console.warn('PERINGATAN: menjalankan seed di produksi. Seluruh data akan dihapus.');
+    return;
+  }
+  console.error('Ditolak: seed menghapus SELURUH tabel dan NODE_ENV=production.');
+  console.error('Kalau memang disengaja, jalankan dengan IZINKAN_SEED_PRODUKSI=ya');
+  process.exit(1);
+}
+
 async function seed() {
+  periksaIzin();
+
   const hash = await hashPassword(KATA_SANDI_CONTOH);
 
   await withTransaction(async (c) => {
