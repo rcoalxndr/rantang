@@ -6,7 +6,7 @@ import { KesalahanDomain } from './errors.js';
 import { routerAuth } from './routes/auth.js';
 import { routerMenu } from './routes/menu.js';
 import { routerDapur } from './routes/dapur.js';
-import { routerPesanan, routerTopup, routerSaldo } from './routes/pelanggan.js';
+import { routerPesanan, routerTopup, routerSaldo } from './routes/toko.js';
 
 /**
  * Penanganan error terpusat.

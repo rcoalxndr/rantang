@@ -56,7 +56,7 @@ export function App() {
   } else if (rute === '/saldo') {
     isi = <Saldo />;
   } else {
-    isi = <Menu keSaldo={() => pergiKe('/saldo')} />;
+    isi = <Menu keDeposit={() => pergiKe('/saldo')} />;
   }
 
   return (

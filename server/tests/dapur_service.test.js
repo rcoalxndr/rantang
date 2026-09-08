@@ -82,7 +82,7 @@ test('daftar produksi menjumlahkan porsi dari semua pelanggan', async () => {
   const produksi = await daftarProduksi(TANGGAL);
 
   assert.equal(produksi.tanggal, TANGGAL);
-  assert.equal(produksi.totalPorsi, 6);
+  assert.equal(produksi.totalUnit, 6);
 
   const katsu = produksi.item.find((i) => i.nama.startsWith('Katsu'));
   const ayam = produksi.item.find((i) => i.nama.startsWith('Ayam'));
@@ -120,7 +120,7 @@ test('pesanan yang dibatalkan tidak ikut dimasak', async () => {
   const produksi = await daftarProduksi(TANGGAL);
   const katsu = produksi.item.find((i) => i.nama.startsWith('Katsu'));
   assert.equal(katsu.jumlah, 2);
-  assert.equal(produksi.totalPorsi, 2);
+  assert.equal(produksi.totalUnit, 2);
 });
 
 test('jumlah produksi selalu sama dengan kolom terjual', async () => {
@@ -223,7 +223,7 @@ test('tanggal tanpa pesanan menghasilkan daftar kosong, bukan error', async () =
   assert.equal(antar.totalPesanan, 0);
 
   const produksi = await daftarProduksi(TANGGAL);
-  assert.equal(produksi.totalPorsi, 0);
+  assert.equal(produksi.totalUnit, 0);
 });
 
 // ---------------------------------------------------------------------------
@@ -243,7 +243,7 @@ test('pesanan bisa ditandai terkirim dan tetap dihitung di produksi', async () =
   assert.equal(hasil.status, 'delivered');
 
   const produksi = await daftarProduksi(TANGGAL);
-  assert.equal(produksi.totalPorsi, 3, 'porsi yang sudah diantar tetap terhitung sudah dimasak');
+  assert.equal(produksi.totalUnit, 3, 'unit yang sudah dikirim tetap terhitung sudah dimasak');
 
   const antar = await daftarAntar(TANGGAL);
   assert.equal(antar.pesanan[0].status, 'delivered');

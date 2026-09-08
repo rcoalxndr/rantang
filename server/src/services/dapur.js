@@ -61,7 +61,7 @@ export async function daftarProduksi(tanggal) {
 
   return {
     tanggal,
-    totalPorsi: item.reduce((n, i) => n + i.jumlah, 0),
+    totalUnit: item.reduce((n, i) => n + i.jumlah, 0),
     item,
   };
 }

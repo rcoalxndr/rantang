@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../api.js';
 import { keRupiah, keTanggal, keWaktu } from '../format.js';
 
-export function Menu({ keSaldo }) {
+export function Menu({ keDeposit }) {
   const [tanggalTersedia, setTanggalTersedia] = useState([]);
   const [dipilih, setDipilih] = useState(null);
   const [hari, setHari] = useState(null);
@@ -32,7 +32,7 @@ export function Menu({ keSaldo }) {
       .catch((e) => setGalat(e.message));
   }, [dipilih]);
 
-  const totalPorsi = Object.values(jumlah).reduce((n, v) => n + (Number(v) || 0), 0);
+  const totalUnit = Object.values(jumlah).reduce((n, v) => n + (Number(v) || 0), 0);
   const totalHarga =
     hari?.item.reduce((n, i) => n + (Number(jumlah[i.id]) || 0) * i.harga, 0) ?? 0;
 
@@ -141,17 +141,17 @@ export function Menu({ keSaldo }) {
             <div className="kartu-kepala">
               <div>
                 <div className="jejak">
-                  {totalPorsi} unit
+                  {totalUnit} unit
                 </div>
                 <div className="angka-besar">{keRupiah(totalHarga)}</div>
               </div>
               <div className="baris">
-                <button className="tombol sekunder" onClick={keSaldo}>
+                <button className="tombol sekunder" onClick={keDeposit}>
                   Isi deposit
                 </button>
                 <button
                   className="tombol"
-                  disabled={!hari.masihBisaPesan || totalPorsi === 0 || sibuk}
+                  disabled={!hari.masihBisaPesan || totalUnit === 0 || sibuk}
                   onClick={pesan}
                 >
                   {sibuk ? 'Memproses…' : 'Pesan sekarang'}

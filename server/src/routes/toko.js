@@ -9,8 +9,8 @@ import { ajukanTopup, daftarTopupSaya, lihatSaldo } from '../services/saldo.js';
 import { wajibMasuk } from '../auth/middleware.js';
 
 /**
- * Router dipecah per sumber daya, bukan satu router besar yang dipasang di
- * '/api'.
+ * Endpoint sisi toko. Router dipecah per sumber daya, bukan satu router besar
+ * yang dipasang di '/api'.
  *
  * Alasannya bukan estetika: router dengan `use(wajibMasuk)` yang dipasang di
  * prefix luas akan menelan SEMUA jalur di bawah prefix itu, termasuk yang tidak

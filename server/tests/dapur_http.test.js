@@ -123,7 +123,7 @@ test('dapur melihat daftar produksi dan daftar antar dari pesanan sungguhan', as
   const produksi = await (
     await kirim(`/api/dapur/production?tanggal=${TANGGAL}`, { cookie: dapur })
   ).json();
-  assert.equal(produksi.totalPorsi, 5);
+  assert.equal(produksi.totalUnit, 5);
   assert.equal(produksi.item[0].jumlah, 5);
   assert.equal(produksi.item[0].kuota, 50);
 

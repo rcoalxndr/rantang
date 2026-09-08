@@ -13,6 +13,60 @@ Dapur hanya memasak sebanyak yang sudah dipesan. Pelanggan mengisi saldo di
 muka, memesan untuk tanggal tertentu sebelum batas waktu, dan dapur membuka
 daftar produksi setiap pagi.
 
+## Tangkapan layar
+
+<!-- Isi berkas gambarnya lalu gambar di bawah akan muncul sendiri. -->
+
+| Sisi toko | Sisi dapur |
+|---|---|
+| ![Layar pemesanan toko](docs/gambar/toko-pesan.png) | ![Daftar produksi dan kirim](docs/gambar/dapur-hari.png) |
+
+## Alur satu pesanan
+
+Inti sistem ini ada di satu transaksi. Perhatikan dua `UPDATE` bersyarat:
+pemeriksaan tidak dilakukan terpisah lalu ditulis, melainkan **menjadi bagian
+dari penulisan itu sendiri** — sehingga tidak ada celah waktu yang bisa
+disusupi permintaan lain.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant T as Toko
+    participant A as API (Express)
+    participant D as PostgreSQL
+
+    T->>A: POST /api/orders
+    A->>D: BEGIN
+    A->>D: cek hari layanan & batas waktu pesan
+    Note over A,D: Waktu diambil dari now() milik database,<br/>tidak pernah dari jam klien
+    A->>D: UPDATE users SET saldo = saldo - total<br/>WHERE id = $1 AND saldo >= total
+    Note over A,D: rowCount = 0 → SaldoTidakCukup
+    A->>D: INSERT orders + order_items
+    A->>D: UPDATE daily_menu_items SET terjual = terjual + n<br/>WHERE id = $1 AND terjual + n <= kuota
+    Note over A,D: rowCount = 0 → KuotaHabis.<br/>Baris panas dikunci paling akhir,<br/>sesingkat mungkin
+    A->>D: INSERT credit_ledger (jumlah negatif)
+    A->>D: COMMIT
+    A-->>T: 201 { pesanan }
+```
+
+Kalau salah satu langkah gagal, seluruh transaksi dibatalkan: deposit utuh,
+kuota utuh, tidak ada pesanan setengah jadi.
+
+## Cara membaca repo ini
+
+Kalau kamu cuma punya sepuluh menit, baca tiga berkas ini berurutan:
+
+1. **`server/src/services/order.js`** — inti sistem. Komentar di puncaknya
+   menjelaskan aturan urutan penguncian yang dipakai konsisten di seluruh
+   berkas untuk mencegah deadlock.
+2. **`server/tests/order_service.test.js`** — dua test terakhirnya menembakkan
+   20 pemesanan bersamaan untuk satu unit terakhir. Test itu **dibuktikan
+   gagal** terhadap implementasi naif sebelum dipakai; catatannya ada di
+   riwayat commit.
+3. **`server/migrations/`** — skemanya. Aturan yang paling kritis (`saldo >= 0`,
+   `terjual <= kuota`) ditegakkan sebagai batasan database, bukan hanya di kode
+   aplikasi.
+
 ## Teknologi
 
 ```
@@ -44,10 +98,32 @@ npm run migrate
 npm run seed
 ```
 
-Seed membuat tiga akun contoh — `dapur@rantang.test` (peran dapur),
-`melati@toserba.test` dan `kenanga@toserba.test` (peran toko) — semuanya dengan
-kata sandi `rantang-demo-2026`. Hanya untuk database pengembangan di mesin
-sendiri.
+Lalu siapkan frontend dan jalankan keduanya, masing-masing di terminal sendiri:
+
+```bash
+cd web && npm install && npm run dev
+```
+
+```bash
+cd server && npm run dev
+```
+
+Buka `http://localhost:5173`.
+
+Seed membuat tiga akun contoh, semuanya dengan kata sandi `rantang-demo-2026`:
+
+| Email | Peran |
+|---|---|
+| `dapur@rantang.test` | dapur |
+| `melati@toserba.test` | toko |
+| `kenanga@toserba.test` | toko |
+
+Hanya untuk database pengembangan di mesin sendiri.
+
+Frontend memakai proxy Vite: permintaan ke `/api` diteruskan ke `localhost:3000`
+di belakang layar, sehingga browser melihat keduanya sebagai satu asal. Itulah
+yang membuat cookie sesi bekerja tanpa perlu `SameSite=None` maupun CORS saat
+pengembangan.
 
 ## Test
 
@@ -70,9 +146,8 @@ server/
   src/auth/          hash kata sandi, sesi, cookie, middleware
   src/services/      logika bisnis (order.js = intinya)
   src/routes/        terjemahan HTTP <-> fungsi
-  migrations/        berkas SQL bernomor, dijalankan berurutan
+  migrations/        berkas SQL bernomor (004 = saat konsep pindah ke ritel)
   scripts/           pelaksana migrasi + data contoh
-  migrations/004     penyesuaian saat konsep pindah ke jalur ritel
   tests/             159 test
 web/
   src/api.js         pembungkus fetch + error domain
@@ -91,25 +166,6 @@ docs/
 - Catatan Fase 2: `docs/superpowers/plans/2026-09-07-fase-2-auth.md`
 - Panduan Fase 4: `docs/superpowers/plans/2026-09-07-fase-4-pemesanan.md`
 
-## Menjalankan
-
-Dua terminal.
-
-```bash
-cd server && npm run dev
-```
-
-```bash
-cd web && npm install && npm run dev
-```
-
-Buka `http://localhost:5173`. Masuk dengan salah satu akun contoh di atas —
-`dapur@rantang.test` untuk sisi dapur, `melati@toserba.test` untuk sisi toko.
-
-Frontend memakai proxy Vite: permintaan ke `/api` diteruskan ke `localhost:3000`
-di belakang layar, sehingga browser melihat keduanya sebagai satu asal. Itulah
-yang membuat cookie sesi bekerja tanpa perlu `SameSite=None` maupun CORS saat
-pengembangan.
 
 ## Status
 

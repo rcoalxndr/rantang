@@ -116,7 +116,7 @@ export class DaftarMenuKosong extends KesalahanDomain {
 
 export class KuotaHabis extends KesalahanDomain {
   constructor() {
-    super('KUOTA_HABIS', 'Porsi untuk menu ini sudah habis.', 409);
+    super('KUOTA_HABIS', 'Unit untuk menu ini sudah habis.', 409);
   }
 }
 
@@ -134,7 +134,7 @@ export class LewatBatasWaktu extends KesalahanDomain {
 
 export class JumlahTidakValid extends KesalahanDomain {
   constructor() {
-    super('JUMLAH_TIDAK_VALID', 'Jumlah porsi harus bilangan bulat lebih dari nol.', 422);
+    super('JUMLAH_TIDAK_VALID', 'Jumlah unit harus bilangan bulat lebih dari nol.', 422);
   }
 }
 

@@ -482,6 +482,10 @@ berkesan daripada membaca penjelasannya.
 | 8 | README, rekaman layar, rapikan |
 | Bonus | Deploy, bila memungkinkan tanpa biaya |
 
+**Semua fase 0–8 selesai per 8 September 2026**, ditambah satu revisi tak
+terencana: perpindahan model bisnis ke jalur ritel (lihat Catatan revisi di
+bagian 1). Yang tersisa hanya rekaman layar demo dan deploy — keduanya bonus.
+
 **Fase 4 adalah alasan seluruh proyek ini ada.** Jangan terburu-buru sampai ke
 sana lalu berhenti, dan jangan tergoda melompatinya karena terasa sulit.
 

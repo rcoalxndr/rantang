@@ -65,7 +65,7 @@ export function DapurHari() {
             </div>
             <div style={{ textAlign: 'right' }}>
               <div className="jejak">Total unit</div>
-              <div className="angka-besar">{produksi.totalPorsi}</div>
+              <div className="angka-besar">{produksi.totalUnit}</div>
             </div>
           </div>
 
