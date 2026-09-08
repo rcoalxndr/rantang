@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Berkas ini hanya untuk deploy ke Vercel. Vercel memasang dependency dari akar repo, dan fungsi di api/ perlu menemukan express serta pg dari sini. Pengembangan lokal tetap memakai server/package.json dan web/package.json seperti biasa.",
   "scripts": {
-    "build": "npm --prefix web ci && npm --prefix web run build"
+    "build": "npm --prefix web ci && npm --prefix web run build && npm --prefix server run migrate"
   },
   "dependencies": {
     "express": "^5.2.1",
