@@ -1,4 +1,4 @@
-import { pool } from '../db.js';
+import { pool, withTransaction } from '../db.js';
 import { hashPassword, verifyPassword } from '../auth/password.js';
 import { buatSesi, hapusSesi } from '../auth/session.js';
 import {
@@ -8,6 +8,28 @@ import {
   NamaKosong,
   AkunNonaktif,
 } from '../errors.js';
+
+/**
+ * Deposit percobaan untuk akun yang baru mendaftar sendiri.
+ *
+ * Alasannya bukan kemudahan, tapi supaya orang bisa MEMBUKTIKAN sistem ini
+ * bekerja: mendaftar, memesan, lalu melihat kuota produksi benar-benar
+ * berkurang. Tanpa ini, akun baru langsung buntu di deposit Rp 0 dan yang
+ * tersisa hanya akun contoh — yang sama sekali tidak membuktikan apa-apa.
+ *
+ * Uangnya tetap dicatat sebagai baris nyata di buku besar, jadi aturan
+ * SUM(credit_ledger) = users.saldo tidak dilanggar sedikit pun.
+ *
+ * Bawaannya MATI. Sistem sungguhan tidak membagikan uang kepada siapa pun yang
+ * mendaftar; ini dinyalakan lewat DEPOSIT_AWAL hanya di lingkungan demo.
+ *
+ * Dibaca tiap kali dipanggil, bukan sekali saat modul dimuat, supaya test bisa
+ * menyalakan dan mematikannya tanpa memuat ulang seluruh aplikasi.
+ */
+function depositAwal() {
+  const n = Number(process.env.DEPOSIT_AWAL ?? 0);
+  return Number.isInteger(n) && n > 0 ? n : 0;
+}
 
 // Sengaja longgar. Satu-satunya cara benar memastikan sebuah email nyata adalah
 // mengirim surel ke sana; regex yang ketat hanya menolak alamat sah yang aneh.
@@ -40,20 +62,34 @@ export async function daftar({ email, kataSandi, nama, pic = '', telepon = '', a
   const hash = await hashPassword(kataSandi);
 
   try {
-    const { rows } = await pool.query(
-      `INSERT INTO users (email, password_hash, nama, pic, telepon, alamat)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING id, email, nama, pic, telepon, alamat, peran, saldo`,
-      [
-        emailBersih,
-        hash,
-        nama.trim(),
-        String(pic ?? ''),
-        String(telepon ?? ''),
-        String(alamat ?? ''),
-      ]
-    );
-    return rows[0];
+    return await withTransaction(async (c) => {
+      const { rows } = await c.query(
+        `INSERT INTO users (email, password_hash, nama, pic, telepon, alamat, saldo)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         RETURNING id, email, nama, pic, telepon, alamat, peran, saldo`,
+        [
+          emailBersih,
+          hash,
+          nama.trim(),
+          String(pic ?? ''),
+          String(telepon ?? ''),
+          String(alamat ?? ''),
+          depositAwal(),
+        ]
+      );
+
+      // Uangnya dicatat, bukan muncul begitu saja. Buku besar tetap seimbang
+      // dengan kolom saldo, sama seperti pergerakan lainnya.
+      if (depositAwal() > 0) {
+        await c.query(
+          `INSERT INTO credit_ledger (user_id, jumlah, jenis, catatan)
+           VALUES ($1, $2, 'topup', 'Deposit percobaan otomatis saat mendaftar')`,
+          [rows[0].id, depositAwal()]
+        );
+      }
+
+      return rows[0];
+    });
   } catch (err) {
     // 23505 = unique_violation. Ditangkap, bukan diperiksa lebih dulu dengan
     // SELECT: pemeriksaan terpisah punya celah waktu — dua pendaftaran bersamaan

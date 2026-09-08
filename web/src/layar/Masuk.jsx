@@ -57,38 +57,49 @@ export function Masuk() {
         <h1>{modeDaftar ? 'Daftarkan toko' : 'Rantang'}</h1>
         <p>
           {modeDaftar
-            ? 'Pesan sebelum batas waktu, kami masak persis sejumlah pesananmu.'
+            ? 'Isi data tokomu. Akun barunya langsung diberi deposit percobaan supaya bisa langsung memesan.'
             : 'Sistem pemesanan makanan siap-santap untuk toserba. Toko memesan sebelum batas waktu, dapur memasak persis sejumlah pesanan.'}
         </p>
       </div>
 
       {!modeDaftar && (
         <div className="kartu" style={{ background: 'var(--kunyit-muda)', borderColor: '#e8d5b8' }}>
-          <h3 style={{ marginBottom: '0.15rem' }}>Ingin mencoba?</h3>
+          <h3 style={{ marginBottom: '0.15rem' }}>Baru di sini?</h3>
           <p className="jejak" style={{ marginTop: 0, marginBottom: '0.7rem' }}>
-            Masuk langsung dengan akun contoh. Datanya boleh diutak-atik.
+            Daftarkan tokomu sendiri — akun barunya langsung diberi deposit percobaan,
+            jadi kamu bisa memesan dan melihat sistemnya bekerja sungguhan.
           </p>
-          <div className="baris">
+          <button
+            className="tombol"
+            type="button"
+            style={{ width: '100%' }}
+            onClick={() => {
+              setModeDaftar(true);
+              setGalat(null);
+            }}
+          >
+            Daftarkan toko saya
+          </button>
+          <p className="jejak" style={{ marginBottom: 0, marginTop: '0.8rem' }}>
+            Atau lihat-lihat dulu dengan akun contoh:{' '}
             <button
-              className="tombol"
               type="button"
+              className="tombol sekunder"
+              style={{ padding: '0.15rem 0.5rem', fontSize: '0.85rem' }}
               disabled={sibuk}
               onClick={() => masukContoh('melati@toserba.test')}
             >
-              Masuk sebagai toko
-            </button>
+              sebagai toko
+            </button>{' '}
             <button
-              className="tombol sekunder"
               type="button"
+              className="tombol sekunder"
+              style={{ padding: '0.15rem 0.5rem', fontSize: '0.85rem' }}
               disabled={sibuk}
               onClick={() => masukContoh('dapur@rantang.test')}
             >
-              Masuk sebagai dapur
+              sebagai dapur
             </button>
-          </div>
-          <p className="jejak" style={{ marginBottom: 0, marginTop: '0.7rem' }}>
-            Coba pesan dari sisi toko, lalu masuk sebagai dapur — pesanannya langsung
-            muncul di daftar produksi.
           </p>
         </div>
       )}

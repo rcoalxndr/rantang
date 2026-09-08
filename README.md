@@ -2,9 +2,17 @@
 
 **Demo langsung: https://rantang-omega.vercel.app**
 
-Masuk sebagai toko dengan `melati@toserba.test`, atau sebagai dapur dengan
-`dapur@rantang.test`. Kata sandi keduanya `rantang-demo-2026`. Silakan pesan,
-batalkan, dan lihat daftar produksinya berubah — datanya memang untuk dicoba.
+**Daftarkan tokomu sendiri di sana.** Akun baru langsung diberi deposit
+percobaan, jadi kamu bisa memesan dan melihat kuota produksi benar-benar
+berkurang — datanya tersimpan sungguhan dan bertahan setelah kamu keluar.
+
+Kalau cuma ingin lihat-lihat, ada akun contoh: `melati@toserba.test` (toko)
+dan `dapur@rantang.test` (dapur), kata sandi `rantang-demo-2026`.
+
+> Deposit percobaan otomatis dinyalakan lewat `DEPOSIT_AWAL` dan **bawaannya
+> mati** — sistem sungguhan tidak membagikan uang kepada siapa pun yang
+> mendaftar. Nilainya tetap dicatat sebagai baris di buku besar, jadi aturan
+> `SUM(credit_ledger) = users.saldo` tidak dilanggar.
 
 
 Sistem pemesanan untuk **Rantang**, konsep bisnis makanan siap-santap bergizi
@@ -204,6 +212,7 @@ Tambahkan variabel lingkungan:
 DATABASE_URL   = (connection string dari Neon)
 COOKIE_SECURE  = true
 PG_MAX         = 1
+DEPOSIT_AWAL   = 300000     # hanya untuk demo; kosongkan di sistem sungguhan
 ```
 
 `PG_MAX=1` karena tiap pemanggilan fungsi berumur pendek; kolam koneksi besar
@@ -288,4 +297,4 @@ deposit dan riwayat mutasi untuk toko; hari produksi (produksi + kirim) dan
 kelola (antrean deposit, buka hari, katalog) untuk dapur. Tanpa
 pustaka routing maupun pengambil data — React, Vite, dan `fetch` saja.
 
-181 test lulus. Backend dan frontend keduanya berjalan, dan aplikasinya hidup di internet.
+184 test lulus. Backend dan frontend keduanya berjalan, dan aplikasinya hidup di internet.
