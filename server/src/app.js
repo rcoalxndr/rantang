@@ -32,8 +32,16 @@ function penanganError(err, _req, res, _next) {
   }
 
   console.error('[error tak tertangani]', err);
+
+  // DIAGNOSTIK SEMENTARA — dicabut setelah masalah koneksi produksi ketemu.
+  // Jangan biarkan ini hidup: pesan error internal bisa membocorkan nama tabel,
+  // bentuk kueri, atau jalur berkas.
   res.status(500).json({
-    error: { code: 'KESALAHAN_SERVER', message: 'Terjadi kesalahan di server.' },
+    error: {
+      code: 'KESALAHAN_SERVER',
+      message: 'Terjadi kesalahan di server.',
+      diagnostik: { nama: err?.name, kode: err?.code, pesan: err?.message },
+    },
   });
 }
 
