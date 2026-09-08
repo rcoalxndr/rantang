@@ -66,10 +66,17 @@ satu database dan saling menimpa kalau berjalan paralel.
 ```
 server/
   src/db.js          koneksi pool + helper transaksi
+  src/auth/          hash kata sandi, sesi, cookie, middleware
+  src/services/      logika bisnis (order.js = intinya)
+  src/routes/        terjemahan HTTP <-> fungsi
   migrations/        berkas SQL bernomor, dijalankan berurutan
-  scripts/migrate.js pelaksana migrasi + pencatat versi
-  scripts/seed.js    data contoh
-  tests/
+  scripts/           pelaksana migrasi + data contoh
+  tests/             159 test
+web/
+  src/api.js         pembungkus fetch + error domain
+  src/auth.jsx       konteks sesi (sumber kebenaran: server)
+  src/rute.js        routing hash, tanpa pustaka
+  src/layar/         enam layar untuk dua peran
 docs/
   superpowers/specs/ desain
   superpowers/plans/ rencana implementasi
@@ -82,15 +89,25 @@ docs/
 - Catatan Fase 2: `docs/superpowers/plans/2026-09-07-fase-2-auth.md`
 - Panduan Fase 4: `docs/superpowers/plans/2026-09-07-fase-4-pemesanan.md`
 
-## Menjalankan server
+## Menjalankan
+
+Dua terminal.
 
 ```bash
-cd server
-npm run dev      # dengan auto-reload
-npm start        # tanpa auto-reload
+cd server && npm run dev
 ```
 
-Server jalan di `http://localhost:3000`. Cek cepat: `curl http://localhost:3000/api/health`
+```bash
+cd web && npm install && npm run dev
+```
+
+Buka `http://localhost:5173`. Masuk dengan salah satu akun contoh di atas —
+`dapur@rantang.test` untuk sisi dapur, `rico@contoh.test` untuk sisi pelanggan.
+
+Frontend memakai proxy Vite: permintaan ke `/api` diteruskan ke `localhost:3000`
+di belakang layar, sehingga browser melihat keduanya sebagai satu asal. Itulah
+yang membuat cookie sesi bekerja tanpa perlu `SameSite=None` maupun CORS saat
+pengembangan.
 
 ## Status
 
@@ -123,6 +140,9 @@ harus dimasak) dan daftar antar (siapa, ke mana, apa isinya), plus penandaan
 pesanan terkirim. Jumlah produksi dihitung ulang dari pesanan yang sebenarnya,
 bukan dibaca dari kolom `terjual` — ada test yang menjaga keduanya selalu sama.
 
-159 test lulus.
+**Fase 7 — frontend React.** Enam layar untuk dua peran: menu dan pemesanan,
+pesanan saya, saldo dan riwayat mutasi untuk pelanggan; hari masak (produksi +
+antar) dan kelola (antrean saldo, buka tanggal, katalog) untuk dapur. Tanpa
+pustaka routing maupun pengambil data — React, Vite, dan `fetch` saja.
 
-Berikutnya: frontend React untuk kedua peran (Fase 7).
+159 test lulus. Backend dan frontend keduanya berjalan.

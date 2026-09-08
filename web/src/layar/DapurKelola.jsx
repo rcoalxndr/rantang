@@ -1,0 +1,245 @@
+import { useCallback, useEffect, useState } from 'react';
+import { api } from '../api.js';
+import { keRupiah, keTanggal, keWaktu, hariIniWib } from '../format.js';
+
+export function DapurKelola() {
+  const [menu, setMenu] = useState([]);
+  const [antrean, setAntrean] = useState([]);
+  const [galat, setGalat] = useState(null);
+  const [sukses, setSukses] = useState(null);
+  const [sibuk, setSibuk] = useState(null);
+
+  const [menuBaru, setMenuBaru] = useState({ nama: '', deskripsi: '', harga: '' });
+  const [hari, setHari] = useState({ tanggal: '', jam: '06:00' });
+  const [kuota, setKuota] = useState({});
+
+  const muat = useCallback(() => {
+    Promise.all([api.get('/kitchen/menu-items'), api.get('/kitchen/topups')])
+      .then(([m, t]) => {
+        setMenu(m.item);
+        setAntrean(t.topup);
+      })
+      .catch((e) => setGalat(e.message));
+  }, []);
+
+  useEffect(muat, [muat]);
+
+  function lapor(fn) {
+    return async (e) => {
+      e?.preventDefault?.();
+      setGalat(null);
+      setSukses(null);
+      try {
+        await fn();
+        muat();
+      } catch (err) {
+        setGalat(err.message);
+      }
+    };
+  }
+
+  const tambahMenu = lapor(async () => {
+    await api.post('/kitchen/menu-items', {
+      nama: menuBaru.nama,
+      deskripsi: menuBaru.deskripsi,
+      harga: Number(menuBaru.harga),
+    });
+    setMenuBaru({ nama: '', deskripsi: '', harga: '' });
+    setSukses('Menu ditambahkan ke katalog.');
+  });
+
+  const bukaHari = lapor(async () => {
+    const item = Object.entries(kuota)
+      .map(([id, k]) => ({ menuItemId: Number(id), kuota: Number(k) }))
+      .filter((i) => i.kuota > 0);
+
+    // Batas waktu dikirim sebagai waktu WIB eksplisit (+07:00). Kalau dikirim
+    // tanpa zona, server akan menafsirkannya menurut zonanya sendiri — dan
+    // server produksi hampir selalu berjalan di UTC.
+    await api.post('/kitchen/service-days', {
+      tanggal: hari.tanggal,
+      batasWaktuPesan: `${hari.tanggal}T${hari.jam}:00+07:00`,
+      item,
+    });
+    setKuota({});
+    setSukses(`Tanggal ${keTanggal(hari.tanggal)} dibuka.`);
+  });
+
+  async function tinjau(id, keputusan) {
+    setSibuk(id);
+    setGalat(null);
+    try {
+      await api.post(`/kitchen/topups/${id}/${keputusan}`);
+      muat();
+    } catch (e) {
+      setGalat(e.message);
+    } finally {
+      setSibuk(null);
+    }
+  }
+
+  return (
+    <>
+      <div className="judul-layar">
+        <h1>Kelola</h1>
+        <p>Katalog menu, pembukaan hari layanan, dan antrean pengisian saldo.</p>
+      </div>
+
+      {galat && <div className="pesan gagal">{galat}</div>}
+      {sukses && <div className="pesan berhasil">{sukses}</div>}
+
+      <div className="kartu">
+        <div className="kartu-kepala">
+          <h2>Antrean isi saldo</h2>
+          <span className="lencana kunyit">{antrean.length} menunggu</span>
+        </div>
+
+        {antrean.length === 0 && <div className="kosong">Tidak ada yang menunggu ditinjau.</div>}
+        {antrean.length > 0 && (
+          <table>
+            <thead>
+              <tr>
+                <th>Pengaju</th>
+                <th>Catatan bukti</th>
+                <th>Waktu</th>
+                <th className="angka">Nominal</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {antrean.map((t) => (
+                <tr key={t.id}>
+                  <td>
+                    <strong>{t.nama}</strong>
+                    <div className="jejak">{t.email}</div>
+                  </td>
+                  <td>{t.catatanBukti || '—'}</td>
+                  <td>{keWaktu(t.dibuatPada)}</td>
+                  <td className="angka">{keRupiah(t.nominal)}</td>
+                  <td>
+                    <div className="baris">
+                      <button
+                        className="tombol"
+                        disabled={sibuk === t.id}
+                        onClick={() => tinjau(t.id, 'approve')}
+                      >
+                        Setujui
+                      </button>
+                      <button
+                        className="tombol bahaya"
+                        disabled={sibuk === t.id}
+                        onClick={() => tinjau(t.id, 'reject')}
+                      >
+                        Tolak
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      <form className="kartu" onSubmit={bukaHari}>
+        <h2>Buka hari layanan</h2>
+        <p className="jejak" style={{ marginTop: 0 }}>
+          Tentukan kuota tiap menu. Kuota nol berarti menu itu tidak dimasak hari tersebut.
+        </p>
+
+        <div className="baris" style={{ marginBottom: '0.9rem' }}>
+          <div className="bidang" style={{ marginBottom: 0 }}>
+            <label htmlFor="tglBuka">Tanggal</label>
+            <input
+              id="tglBuka"
+              type="date"
+              min={hariIniWib()}
+              value={hari.tanggal}
+              onChange={(e) => setHari((v) => ({ ...v, tanggal: e.target.value }))}
+              required
+            />
+          </div>
+          <div className="bidang" style={{ marginBottom: 0 }}>
+            <label htmlFor="jamBuka">Batas pesan (WIB)</label>
+            <input
+              id="jamBuka"
+              type="time"
+              value={hari.jam}
+              onChange={(e) => setHari((v) => ({ ...v, jam: e.target.value }))}
+              required
+            />
+          </div>
+        </div>
+
+        {menu.length === 0 && <div className="kosong">Tambahkan menu dulu di bawah.</div>}
+        {menu.length > 0 && (
+          <table style={{ marginBottom: '0.9rem' }}>
+            <thead>
+              <tr>
+                <th>Menu</th>
+                <th className="angka">Harga</th>
+                <th className="angka">Kuota</th>
+              </tr>
+            </thead>
+            <tbody>
+              {menu.map((m) => (
+                <tr key={m.id}>
+                  <td>{m.nama}</td>
+                  <td className="angka">{keRupiah(m.harga)}</td>
+                  <td className="angka">
+                    <input
+                      className="jumlah"
+                      type="number"
+                      min="0"
+                      value={kuota[m.id] ?? ''}
+                      onChange={(e) => setKuota((v) => ({ ...v, [m.id]: e.target.value }))}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+
+        <button className="tombol" type="submit" disabled={menu.length === 0}>
+          Buka tanggal ini
+        </button>
+      </form>
+
+      <form className="kartu" onSubmit={tambahMenu}>
+        <h2>Tambah menu ke katalog</h2>
+        <div className="bidang">
+          <label htmlFor="namaMenu">Nama</label>
+          <input
+            id="namaMenu"
+            value={menuBaru.nama}
+            onChange={(e) => setMenuBaru((v) => ({ ...v, nama: e.target.value }))}
+            required
+          />
+        </div>
+        <div className="bidang">
+          <label htmlFor="deskMenu">Deskripsi</label>
+          <input
+            id="deskMenu"
+            value={menuBaru.deskripsi}
+            onChange={(e) => setMenuBaru((v) => ({ ...v, deskripsi: e.target.value }))}
+          />
+        </div>
+        <div className="bidang">
+          <label htmlFor="hargaMenu">Harga (rupiah)</label>
+          <input
+            id="hargaMenu"
+            type="number"
+            min="1"
+            value={menuBaru.harga}
+            onChange={(e) => setMenuBaru((v) => ({ ...v, harga: e.target.value }))}
+            required
+          />
+        </div>
+        <button className="tombol" type="submit">
+          Tambahkan
+        </button>
+      </form>
+    </>
+  );
+}

@@ -1,0 +1,363 @@
+/* Palet dan tipografi Rantang — sama dengan yang dipakai di proposal. */
+:root {
+  --daun: #2e5741;
+  --daun-tua: #21402f;
+  --daun-muda: #dfe9e2;
+  --kunyit: #b26b16;
+  --kunyit-muda: #f6ead9;
+  --beras: #efebe2;
+  --kertas: #fbf9f5;
+  --tinta: #23201b;
+  --tinta-lembut: #6b6459;
+  --garis: #ddd6c9;
+  --bahaya: #a33328;
+  --bahaya-muda: #f7e4e1;
+
+  --serif: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  --radius: 10px;
+  --bayang: 0 1px 2px rgb(35 32 27 / 6%), 0 4px 14px rgb(35 32 27 / 5%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--beras);
+  color: var(--tinta);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--serif);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.4rem;
+  line-height: 1.2;
+}
+
+h1 {
+  font-size: 1.9rem;
+}
+h2 {
+  font-size: 1.35rem;
+}
+h3 {
+  font-size: 1.05rem;
+}
+
+a {
+  color: var(--daun);
+}
+
+/* ---------- kerangka ---------- */
+
+.bilah {
+  background: var(--daun);
+  color: var(--daun-muda);
+  border-bottom: 3px solid var(--kunyit);
+}
+
+.bilah-isi {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0.9rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.merek {
+  font-family: var(--serif);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+
+.merek small {
+  display: block;
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--daun-muda);
+  opacity: 0.8;
+  letter-spacing: 0.01em;
+}
+
+nav {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+nav button {
+  background: none;
+  border: 0;
+  color: var(--daun-muda);
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+nav button:hover {
+  background: rgb(255 255 255 / 10%);
+}
+
+nav button[aria-current='page'] {
+  background: var(--kunyit);
+  color: #fff;
+  font-weight: 500;
+}
+
+.aku {
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+main {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 1.75rem 1.25rem 4rem;
+}
+
+.judul-layar {
+  margin-bottom: 1.25rem;
+}
+
+.judul-layar p {
+  margin: 0;
+  color: var(--tinta-lembut);
+  font-size: 0.92rem;
+}
+
+/* ---------- kartu ---------- */
+
+.kartu {
+  background: var(--kertas);
+  border: 1px solid var(--garis);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.25rem;
+  box-shadow: var(--bayang);
+  margin-bottom: 1rem;
+}
+
+.kartu-kepala {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.kisi {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+/* ---------- tombol & isian ---------- */
+
+button.tombol,
+.tombol {
+  font: inherit;
+  font-weight: 500;
+  border: 1px solid var(--daun);
+  background: var(--daun);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+button.tombol:hover:not(:disabled) {
+  background: var(--daun-tua);
+}
+
+button.tombol:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+button.tombol.sekunder {
+  background: transparent;
+  color: var(--daun);
+}
+
+button.tombol.sekunder:hover:not(:disabled) {
+  background: var(--daun-muda);
+}
+
+button.tombol.bahaya {
+  background: transparent;
+  color: var(--bahaya);
+  border-color: var(--bahaya);
+}
+
+button.tombol.bahaya:hover:not(:disabled) {
+  background: var(--bahaya-muda);
+}
+
+label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  color: var(--tinta-lembut);
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  width: 100%;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--garis);
+  border-radius: var(--radius);
+  background: #fff;
+  color: var(--tinta);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--daun);
+  outline-offset: -1px;
+}
+
+.bidang {
+  margin-bottom: 0.85rem;
+}
+
+.baris {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+input[type='number'].jumlah {
+  width: 5.5rem;
+}
+
+/* ---------- tabel ---------- */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+th {
+  text-align: left;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--tinta-lembut);
+  border-bottom: 1px solid var(--garis);
+  padding: 0.4rem 0.5rem;
+  font-weight: 600;
+}
+
+td {
+  padding: 0.55rem 0.5rem;
+  border-bottom: 1px solid var(--garis);
+  vertical-align: top;
+}
+
+tr:last-child td {
+  border-bottom: 0;
+}
+
+td.angka,
+th.angka {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- lencana & pesan ---------- */
+
+.lencana {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: var(--daun-muda);
+  color: var(--daun-tua);
+}
+
+.lencana.kunyit {
+  background: var(--kunyit-muda);
+  color: var(--kunyit);
+}
+
+.lencana.merah {
+  background: var(--bahaya-muda);
+  color: var(--bahaya);
+}
+
+.pesan {
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.pesan.gagal {
+  background: var(--bahaya-muda);
+  color: var(--bahaya);
+  border: 1px solid #e8c4bf;
+}
+
+.pesan.berhasil {
+  background: var(--daun-muda);
+  color: var(--daun-tua);
+  border: 1px solid #c3d6c9;
+}
+
+.kosong {
+  color: var(--tinta-lembut);
+  font-size: 0.92rem;
+  padding: 0.6rem 0;
+}
+
+.angka-besar {
+  font-family: var(--serif);
+  font-size: 2.1rem;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.sisa-habis {
+  color: var(--bahaya);
+  font-weight: 600;
+}
+
+.masuk-bungkus {
+  max-width: 380px;
+  margin: 3rem auto;
+}
+
+.jejak {
+  font-size: 0.82rem;
+  color: var(--tinta-lembut);
+}
