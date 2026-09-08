@@ -42,7 +42,7 @@ function bentukTopup(r) {
 export async function daftarTopupSaya(userId) {
   const { rows } = await pool.query(
     `SELECT id, nominal, status, catatan_bukti, dibuat_pada
-     FROM topup_requests WHERE user_id = $1 ORDER BY id DESC`,
+     FROM topup_requests WHERE user_id = $1 ORDER BY id DESC LIMIT 200`,
     [userId]
   );
   return rows.map(bentukTopup);
@@ -54,7 +54,8 @@ export async function daftarTopupPending() {
      FROM topup_requests t
      JOIN users u ON u.id = t.user_id
      WHERE t.status = 'pending'
-     ORDER BY t.id`
+     ORDER BY t.id
+     LIMIT 200`
   );
 
   return rows.map((r) => ({
@@ -153,7 +154,8 @@ export async function lihatSaldo(userId) {
   const { rows: riwayat } = await pool.query(
     `SELECT id, jumlah, jenis, ref_order_id, catatan, dibuat_pada
      FROM credit_ledger WHERE user_id = $1
-     ORDER BY id DESC`,
+     ORDER BY id DESC
+     LIMIT 200`,
     [userId]
   );
 

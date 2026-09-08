@@ -5,6 +5,8 @@ import { keRupiah, keTanggal, keWaktu, hariIniWib } from '../format.js';
 export function DapurKelola() {
   const [menu, setMenu] = useState([]);
   const [antrean, setAntrean] = useState([]);
+  const [toko, setToko] = useState([]);
+  const [koreksi, setKoreksi] = useState({});
   const [galat, setGalat] = useState(null);
   const [sukses, setSukses] = useState(null);
   const [sibuk, setSibuk] = useState(null);
@@ -14,10 +16,15 @@ export function DapurKelola() {
   const [kuota, setKuota] = useState({});
 
   const muat = useCallback(() => {
-    Promise.all([api.get('/dapur/menu-items'), api.get('/dapur/topups')])
-      .then(([m, t]) => {
+    Promise.all([
+      api.get('/dapur/menu-items'),
+      api.get('/dapur/topups'),
+      api.get('/dapur/toko'),
+    ])
+      .then(([m, t, k]) => {
         setMenu(m.item);
         setAntrean(t.topup);
+        setToko(k.toko);
       })
       .catch((e) => setGalat(e.message));
   }, []);
@@ -64,6 +71,41 @@ export function DapurKelola() {
     setKuota({});
     setSukses(`Tanggal ${keTanggal(hari.tanggal)} dibuka.`);
   });
+
+  async function ubahAktif(id, aktif) {
+    setSibuk(id);
+    setGalat(null);
+    setSukses(null);
+    try {
+      await api.post(`/dapur/toko/${id}/${aktif ? 'aktifkan' : 'nonaktifkan'}`);
+      setSukses(aktif ? 'Toko diaktifkan kembali.' : 'Toko dinonaktifkan. Sesinya ikut diputus.');
+      muat();
+    } catch (e) {
+      setGalat(e.message);
+    } finally {
+      setSibuk(null);
+    }
+  }
+
+  async function kirimKoreksi(id) {
+    const isian = koreksi[id] ?? {};
+    setSibuk(id);
+    setGalat(null);
+    setSukses(null);
+    try {
+      await api.post(`/dapur/toko/${id}/koreksi-deposit`, {
+        jumlah: Number(isian.jumlah),
+        catatan: isian.catatan ?? '',
+      });
+      setKoreksi((v) => ({ ...v, [id]: null }));
+      setSukses('Deposit dikoreksi. Alasannya tercatat di buku besar toko.');
+      muat();
+    } catch (e) {
+      setGalat(e.message);
+    } finally {
+      setSibuk(null);
+    }
+  }
 
   async function tinjau(id, keputusan) {
     setSibuk(id);
@@ -133,6 +175,116 @@ export function DapurKelola() {
                         Tolak
                       </button>
                     </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      <div className="kartu">
+        <div className="kartu-kepala">
+          <h2>Toko terdaftar</h2>
+          <span className="lencana">{toko.filter((t) => t.aktif).length} aktif</span>
+        </div>
+        <p className="jejak" style={{ marginTop: 0 }}>
+          Menonaktifkan toko memutus sesinya saat itu juga, tapi tidak menghapus riwayat
+          pesanan maupun buku besarnya.
+        </p>
+
+        {toko.length === 0 && <div className="kosong">Belum ada toko yang mendaftar.</div>}
+        {toko.length > 0 && (
+          <table>
+            <thead>
+              <tr>
+                <th>Toko</th>
+                <th className="angka">Deposit</th>
+                <th className="angka">Pesanan</th>
+                <th>Status</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {toko.map((t) => (
+                <tr key={t.id}>
+                  <td>
+                    <strong>{t.nama}</strong>
+                    <div className="jejak">
+                      {[t.pic, t.telepon].filter(Boolean).join(' · ') || t.email}
+                    </div>
+                  </td>
+                  <td className="angka">{keRupiah(t.saldo)}</td>
+                  <td className="angka">{t.jumlahPesanan}</td>
+                  <td>
+                    <span className={`lencana ${t.aktif ? '' : 'merah'}`}>
+                      {t.aktif ? 'Aktif' : 'Nonaktif'}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="baris">
+                      <button
+                        className="tombol sekunder"
+                        disabled={sibuk === t.id}
+                        onClick={() =>
+                          setKoreksi((v) => ({
+                            ...v,
+                            [t.id]: v[t.id] ? null : { jumlah: '', catatan: '' },
+                          }))
+                        }
+                      >
+                        Koreksi deposit
+                      </button>
+                      <button
+                        className={`tombol ${t.aktif ? 'bahaya' : 'sekunder'}`}
+                        disabled={sibuk === t.id}
+                        onClick={() => ubahAktif(t.id, !t.aktif)}
+                      >
+                        {t.aktif ? 'Nonaktifkan' : 'Aktifkan'}
+                      </button>
+                    </div>
+
+                    {koreksi[t.id] && (
+                      <div className="baris" style={{ marginTop: '0.6rem' }}>
+                        <div className="bidang" style={{ marginBottom: 0 }}>
+                          <label htmlFor={`jml-${t.id}`}>Jumlah (boleh minus)</label>
+                          <input
+                            id={`jml-${t.id}`}
+                            type="number"
+                            step="1"
+                            placeholder="-200000"
+                            value={koreksi[t.id].jumlah}
+                            onChange={(e) =>
+                              setKoreksi((v) => ({
+                                ...v,
+                                [t.id]: { ...v[t.id], jumlah: e.target.value },
+                              }))
+                            }
+                          />
+                        </div>
+                        <div className="bidang" style={{ marginBottom: 0, flex: 1 }}>
+                          <label htmlFor={`cat-${t.id}`}>Alasan (wajib)</label>
+                          <input
+                            id={`cat-${t.id}`}
+                            placeholder="mis. transfer tidak masuk"
+                            value={koreksi[t.id].catatan}
+                            onChange={(e) =>
+                              setKoreksi((v) => ({
+                                ...v,
+                                [t.id]: { ...v[t.id], catatan: e.target.value },
+                              }))
+                            }
+                          />
+                        </div>
+                        <button
+                          className="tombol"
+                          disabled={sibuk === t.id}
+                          onClick={() => kirimKoreksi(t.id)}
+                        >
+                          Simpan
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}

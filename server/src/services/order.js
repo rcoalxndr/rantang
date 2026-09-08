@@ -318,7 +318,8 @@ export async function lihatPesananSaya(userId) {
     `SELECT id, to_char(tanggal_layanan, 'YYYY-MM-DD') AS tanggal,
             status, total, alamat_antar
      FROM orders WHERE user_id = $1
-     ORDER BY id DESC`,
+     ORDER BY id DESC
+     LIMIT 200`,
     [userId]
   );
 

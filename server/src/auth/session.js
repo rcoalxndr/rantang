@@ -39,7 +39,7 @@ export async function ambilSesi(id) {
     `SELECT s.id, s.user_id, s.kedaluwarsa, u.email, u.nama, u.peran
      FROM sessions s
      JOIN users u ON u.id = s.user_id
-     WHERE s.id = $1 AND s.kedaluwarsa > now()`,
+     WHERE s.id = $1 AND s.kedaluwarsa > now() AND u.aktif`,
     [id]
   );
 

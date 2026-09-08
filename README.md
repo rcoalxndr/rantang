@@ -276,9 +276,16 @@ masuk dibatasi per email, pendaftaran per alamat IP), kunci idempotensi supaya
 klik ganda tidak menghasilkan dua pesanan dengan dua potongan deposit, header
 keamanan, dan batas ukuran permintaan.
 
+**Fase 10 — operasional.** Dapur bisa melihat daftar toko beserta deposit dan
+riwayat pesanannya, menonaktifkan akun (memutus sesinya saat itu juga, tanpa
+menghapus riwayat), dan **mengoreksi deposit yang salah disetujui** — dicatat
+sebagai baris baru di buku besar dengan alasan wajib, tidak pernah dengan
+menyunting angka lama. Kueri daftar dibatasi supaya tidak ada yang tumbuh tanpa
+henti.
+
 **Fase 7 — frontend React.** Enam layar untuk dua peran: pesan, pesanan toko,
 deposit dan riwayat mutasi untuk toko; hari produksi (produksi + kirim) dan
 kelola (antrean deposit, buka hari, katalog) untuk dapur. Tanpa
 pustaka routing maupun pengambil data — React, Vite, dan `fetch` saja.
 
-167 test lulus. Backend dan frontend keduanya berjalan, dan aplikasinya hidup di internet.
+181 test lulus. Backend dan frontend keduanya berjalan, dan aplikasinya hidup di internet.

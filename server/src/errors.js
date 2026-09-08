@@ -201,3 +201,21 @@ export class KunciIdempotensiDipakaiUlang extends KesalahanDomain {
     );
   }
 }
+
+export class PenggunaTidakDitemukan extends KesalahanDomain {
+  constructor() {
+    super('PENGGUNA_TIDAK_DITEMUKAN', 'Pengguna tidak ditemukan.', 404);
+  }
+}
+
+export class CatatanKoreksiWajib extends KesalahanDomain {
+  constructor() {
+    super('CATATAN_KOREKSI_WAJIB', 'Koreksi deposit wajib disertai catatan alasannya.', 422);
+  }
+}
+
+export class AkunNonaktif extends KesalahanDomain {
+  constructor() {
+    super('AKUN_NONAKTIF', 'Akun ini sedang dinonaktifkan. Hubungi dapur.', 403);
+  }
+}

@@ -7,6 +7,12 @@ import {
 } from '../services/menu.js';
 import { daftarTopupPending, setujuiTopup, tolakTopup } from '../services/saldo.js';
 import { daftarProduksi, daftarAntar, tandaiTerkirim } from '../services/dapur.js';
+import {
+  daftarToko,
+  setAktifToko,
+  koreksiDeposit,
+  bersihkanDataKedaluwarsa,
+} from '../services/toko.js';
 import { wajibPeran } from '../auth/middleware.js';
 
 export const routerDapur = Router();
@@ -59,4 +65,32 @@ routerDapur.get('/deliveries', async (req, res) => {
 
 routerDapur.post('/orders/:id/deliver', async (req, res) => {
   res.json(await tandaiTerkirim(req.params.id));
+});
+
+routerDapur.get('/toko', async (_req, res) => {
+  res.json({ toko: await daftarToko() });
+});
+
+routerDapur.post('/toko/:id/nonaktifkan', async (req, res) => {
+  res.json(await setAktifToko({ userId: req.params.id, aktif: false }));
+});
+
+routerDapur.post('/toko/:id/aktifkan', async (req, res) => {
+  res.json(await setAktifToko({ userId: req.params.id, aktif: true }));
+});
+
+routerDapur.post('/toko/:id/koreksi-deposit', async (req, res) => {
+  const { jumlah, catatan } = req.body ?? {};
+  res.json(
+    await koreksiDeposit({
+      dapurId: req.user.id,
+      userId: req.params.id,
+      jumlah: Number(jumlah),
+      catatan,
+    })
+  );
+});
+
+routerDapur.post('/bersihkan', async (_req, res) => {
+  res.json(await bersihkanDataKedaluwarsa());
 });

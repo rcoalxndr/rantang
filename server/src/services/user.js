@@ -6,6 +6,7 @@ import {
   EmailTidakValid,
   KredensialSalah,
   NamaKosong,
+  AkunNonaktif,
 } from '../errors.js';
 
 // Sengaja longgar. Satu-satunya cara benar memastikan sebuah email nyata adalah
@@ -67,7 +68,7 @@ export async function masuk({ email, kataSandi }) {
   const emailBersih = typeof email === 'string' ? email.trim().toLowerCase() : '';
 
   const { rows } = await pool.query(
-    `SELECT id, email, nama, pic, telepon, alamat, peran, saldo, password_hash
+    `SELECT id, email, nama, pic, telepon, alamat, peran, saldo, aktif, password_hash
      FROM users WHERE email = $1`,
     [emailBersih]
   );
@@ -83,6 +84,11 @@ export async function masuk({ email, kataSandi }) {
   // Error yang sama persis untuk "email tidak ada" dan "kata sandi salah",
   // dengan alasan yang sama: jangan beri tahu email mana yang terdaftar.
   if (!user || !cocok) throw new KredensialSalah();
+
+  // Diperiksa SETELAH kata sandi diverifikasi. Kalau diperiksa lebih dulu,
+  // pesan "akun nonaktif" akan memberi tahu penebak bahwa email itu terdaftar —
+  // padahal seluruh alur ini dirancang supaya tidak membocorkan hal itu.
+  if (!user.aktif) throw new AkunNonaktif();
 
   const sesi = await buatSesi(user.id);
 
