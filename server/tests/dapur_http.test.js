@@ -46,8 +46,8 @@ async function masukSebagai(peran, { nama = 'Uji', alamat = 'Jl. Uji 1' } = {}) 
     method: 'POST',
     body: { email, kataSandi: 'kata-sandi-aman', nama, alamat, telepon: '0811' },
   });
-  if (peran === 'kitchen') {
-    await pool.query(`UPDATE users SET peran = 'kitchen' WHERE email = $1`, [email]);
+  if (peran === 'dapur') {
+    await pool.query(`UPDATE users SET peran = 'dapur' WHERE email = $1`, [email]);
   }
   const login = await kirim('/api/auth/login', {
     method: 'POST',
@@ -60,13 +60,13 @@ const TANGGAL = '2030-01-01';
 const CUTOFF = '2029-12-31T20:00:00+07:00';
 
 async function siapkanHari(cookieDapur, kuota = 50) {
-  const buat = await kirim('/api/kitchen/menu-items', {
+  const buat = await kirim('/api/dapur/menu-items', {
     method: 'POST',
     cookie: cookieDapur,
     body: { nama: `Katsu ${Math.random()}`, harga: 32000 },
   });
   const { item: menu } = await buat.json();
-  const buka = await kirim('/api/kitchen/service-days', {
+  const buka = await kirim('/api/dapur/service-days', {
     method: 'POST',
     cookie: cookieDapur,
     body: { tanggal: TANGGAL, batasWaktuPesan: CUTOFF, item: [{ menuItemId: menu.id, kuota }] },
@@ -82,28 +82,28 @@ async function isiSaldo(cookiePelanggan, cookieDapur, nominal) {
       body: { nominal, catatanBukti: 'uji' },
     })
   ).json();
-  await kirim(`/api/kitchen/topups/${topup.id}/approve`, { method: 'POST', cookie: cookieDapur });
+  await kirim(`/api/dapur/topups/${topup.id}/approve`, { method: 'POST', cookie: cookieDapur });
 }
 
 test('pelanggan tidak bisa melihat daftar produksi', async () => {
-  const dapur = await masukSebagai('kitchen');
-  const pelanggan = await masukSebagai('customer');
+  const dapur = await masukSebagai('dapur');
+  const pelanggan = await masukSebagai('toko');
   await siapkanHari(dapur);
 
-  const res = await kirim(`/api/kitchen/production?tanggal=${TANGGAL}`, { cookie: pelanggan });
+  const res = await kirim(`/api/dapur/production?tanggal=${TANGGAL}`, { cookie: pelanggan });
   assert.equal(res.status, 403);
   assert.equal((await res.json()).error.code, 'TIDAK_BERWENANG');
 });
 
 test('daftar antar tidak bisa dibuka tanpa masuk', async () => {
-  const res = await kirim(`/api/kitchen/deliveries?tanggal=${TANGGAL}`);
+  const res = await kirim(`/api/dapur/deliveries?tanggal=${TANGGAL}`);
   assert.equal(res.status, 401);
 });
 
 test('dapur melihat daftar produksi dan daftar antar dari pesanan sungguhan', async () => {
-  const dapur = await masukSebagai('kitchen');
-  const rico = await masukSebagai('customer', { nama: 'Rico', alamat: 'Jl. Melati No. 12' });
-  const sinta = await masukSebagai('customer', { nama: 'Sinta', alamat: 'Jl. Kenanga No. 4' });
+  const dapur = await masukSebagai('dapur');
+  const rico = await masukSebagai('toko', { nama: 'Rico', alamat: 'Jl. Melati No. 12' });
+  const sinta = await masukSebagai('toko', { nama: 'Sinta', alamat: 'Jl. Kenanga No. 4' });
   const menuHarianId = await siapkanHari(dapur);
 
   await isiSaldo(rico, dapur, 500000);
@@ -121,14 +121,14 @@ test('dapur melihat daftar produksi dan daftar antar dari pesanan sungguhan', as
   });
 
   const produksi = await (
-    await kirim(`/api/kitchen/production?tanggal=${TANGGAL}`, { cookie: dapur })
+    await kirim(`/api/dapur/production?tanggal=${TANGGAL}`, { cookie: dapur })
   ).json();
   assert.equal(produksi.totalPorsi, 5);
   assert.equal(produksi.item[0].jumlah, 5);
   assert.equal(produksi.item[0].kuota, 50);
 
   const antar = await (
-    await kirim(`/api/kitchen/deliveries?tanggal=${TANGGAL}`, { cookie: dapur })
+    await kirim(`/api/dapur/deliveries?tanggal=${TANGGAL}`, { cookie: dapur })
   ).json();
   assert.equal(antar.totalPesanan, 2);
 
@@ -137,8 +137,8 @@ test('dapur melihat daftar produksi dan daftar antar dari pesanan sungguhan', as
 });
 
 test('dapur menandai pesanan terkirim lewat API', async () => {
-  const dapur = await masukSebagai('kitchen');
-  const pelanggan = await masukSebagai('customer');
+  const dapur = await masukSebagai('dapur');
+  const pelanggan = await masukSebagai('toko');
   const menuHarianId = await siapkanHari(dapur);
   await isiSaldo(pelanggan, dapur, 200000);
 
@@ -150,7 +150,7 @@ test('dapur menandai pesanan terkirim lewat API', async () => {
     })
   ).json();
 
-  const kirimkan = await kirim(`/api/kitchen/orders/${pesanan.id}/deliver`, {
+  const kirimkan = await kirim(`/api/dapur/orders/${pesanan.id}/deliver`, {
     method: 'POST',
     cookie: dapur,
   });
@@ -162,7 +162,7 @@ test('dapur menandai pesanan terkirim lewat API', async () => {
   ).json();
   assert.equal(dilihatPelanggan.pesanan.status, 'delivered');
 
-  const ulang = await kirim(`/api/kitchen/orders/${pesanan.id}/deliver`, {
+  const ulang = await kirim(`/api/dapur/orders/${pesanan.id}/deliver`, {
     method: 'POST',
     cookie: dapur,
   });
@@ -171,8 +171,8 @@ test('dapur menandai pesanan terkirim lewat API', async () => {
 });
 
 test('pelanggan tidak bisa membatalkan pesanan yang sudah dikirim', async () => {
-  const dapur = await masukSebagai('kitchen');
-  const pelanggan = await masukSebagai('customer');
+  const dapur = await masukSebagai('dapur');
+  const pelanggan = await masukSebagai('toko');
   const menuHarianId = await siapkanHari(dapur);
   await isiSaldo(pelanggan, dapur, 200000);
 
@@ -183,7 +183,7 @@ test('pelanggan tidak bisa membatalkan pesanan yang sudah dikirim', async () => 
       body: { tanggal: TANGGAL, item: [{ dailyMenuItemId: menuHarianId, jumlah: 1 }] },
     })
   ).json();
-  await kirim(`/api/kitchen/orders/${pesanan.id}/deliver`, { method: 'POST', cookie: dapur });
+  await kirim(`/api/dapur/orders/${pesanan.id}/deliver`, { method: 'POST', cookie: dapur });
 
   const batal = await kirim(`/api/orders/${pesanan.id}/cancel`, {
     method: 'POST',
@@ -201,8 +201,8 @@ test('pelanggan tidak bisa membatalkan pesanan yang sudah dikirim', async () => 
 });
 
 test('tanggal tanpa parameter dijawab 422, bukan 500', async () => {
-  const dapur = await masukSebagai('kitchen');
-  const res = await kirim('/api/kitchen/production', { cookie: dapur });
+  const dapur = await masukSebagai('dapur');
+  const res = await kirim('/api/dapur/production', { cookie: dapur });
   assert.equal(res.status, 422);
   assert.equal((await res.json()).error.code, 'TANGGAL_TIDAK_VALID');
 });

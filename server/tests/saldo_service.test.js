@@ -25,7 +25,7 @@ beforeEach(async () => {
   await resetDatabase();
 });
 
-async function buatUser(peran = 'customer') {
+async function buatUser(peran = 'toko') {
   const { rows } = await pool.query(
     `INSERT INTO users (email, password_hash, nama, peran)
      VALUES ($1, 'h', 'Uji', $2) RETURNING id`,
@@ -87,7 +87,7 @@ test('daftar pengajuan saya hanya berisi milik sendiri', async () => {
 
 test('persetujuan menambah saldo dan mencatat buku besar', async () => {
   const userId = await buatUser();
-  const dapur = await buatUser('kitchen');
+  const dapur = await buatUser('dapur');
   const topup = await ajukanTopup({ userId, nominal: 200000, catatanBukti: 'BCA' });
 
   const hasil = await setujuiTopup({ reviewerId: dapur, topupId: topup.id });
@@ -107,7 +107,7 @@ test('persetujuan menambah saldo dan mencatat buku besar', async () => {
 
 test('peninjau tercatat di pengajuan', async () => {
   const userId = await buatUser();
-  const dapur = await buatUser('kitchen');
+  const dapur = await buatUser('dapur');
   const topup = await ajukanTopup({ userId, nominal: 50000, catatanBukti: '' });
 
   await setujuiTopup({ reviewerId: dapur, topupId: topup.id });
@@ -122,7 +122,7 @@ test('peninjau tercatat di pengajuan', async () => {
 
 test('persetujuan dua kali ditolak dan saldo tidak dobel', async () => {
   const userId = await buatUser();
-  const dapur = await buatUser('kitchen');
+  const dapur = await buatUser('dapur');
   const topup = await ajukanTopup({ userId, nominal: 200000, catatanBukti: '' });
 
   await setujuiTopup({ reviewerId: dapur, topupId: topup.id });
@@ -135,7 +135,7 @@ test('persetujuan dua kali ditolak dan saldo tidak dobel', async () => {
 });
 
 test('pengajuan yang tidak ada menghasilkan 404', async () => {
-  const dapur = await buatUser('kitchen');
+  const dapur = await buatUser('dapur');
   await assert.rejects(
     () => setujuiTopup({ reviewerId: dapur, topupId: 999999 }),
     TopupTidakDitemukan
@@ -144,7 +144,7 @@ test('pengajuan yang tidak ada menghasilkan 404', async () => {
 
 test('peninjau yang bukan dapur ditolak', async () => {
   const userId = await buatUser();
-  const orangLain = await buatUser('customer');
+  const orangLain = await buatUser('toko');
   const topup = await ajukanTopup({ userId, nominal: 50000, catatanBukti: '' });
 
   await assert.rejects(
@@ -160,7 +160,7 @@ test('peninjau yang bukan dapur ditolak', async () => {
 
 test('penolakan tidak menambah saldo dan tidak mencatat buku besar', async () => {
   const userId = await buatUser();
-  const dapur = await buatUser('kitchen');
+  const dapur = await buatUser('dapur');
   const topup = await ajukanTopup({ userId, nominal: 200000, catatanBukti: 'bukti palsu' });
 
   const hasil = await tolakTopup({ reviewerId: dapur, topupId: topup.id });
@@ -174,7 +174,7 @@ test('penolakan tidak menambah saldo dan tidak mencatat buku besar', async () =>
 
 test('pengajuan yang sudah ditolak tidak bisa disetujui', async () => {
   const userId = await buatUser();
-  const dapur = await buatUser('kitchen');
+  const dapur = await buatUser('dapur');
   const topup = await ajukanTopup({ userId, nominal: 200000, catatanBukti: '' });
 
   await tolakTopup({ reviewerId: dapur, topupId: topup.id });
@@ -192,7 +192,7 @@ test('pengajuan yang sudah ditolak tidak bisa disetujui', async () => {
 test('daftar pending hanya memuat yang belum ditinjau, lengkap dengan nama pengaju', async () => {
   const a = await buatUser();
   const b = await buatUser();
-  const dapur = await buatUser('kitchen');
+  const dapur = await buatUser('dapur');
 
   const t1 = await ajukanTopup({ userId: a, nominal: 100000, catatanBukti: 'satu' });
   await ajukanTopup({ userId: b, nominal: 50000, catatanBukti: 'dua' });
@@ -210,7 +210,7 @@ test('daftar pending hanya memuat yang belum ditinjau, lengkap dengan nama penga
 
 test('lihat saldo memberi angka dan riwayat buku besar', async () => {
   const userId = await buatUser();
-  const dapur = await buatUser('kitchen');
+  const dapur = await buatUser('dapur');
   const t1 = await ajukanTopup({ userId, nominal: 200000, catatanBukti: 'BCA' });
   await setujuiTopup({ reviewerId: dapur, topupId: t1.id });
 
@@ -236,7 +236,7 @@ test('riwayat kosong untuk user baru, bukan error', async () => {
 
 test('lima persetujuan bersamaan atas satu pengajuan: saldo hanya bertambah sekali', async () => {
   const userId = await buatUser();
-  const dapur = await buatUser('kitchen');
+  const dapur = await buatUser('dapur');
   const topup = await ajukanTopup({ userId, nominal: 200000, catatanBukti: '' });
 
   await panaskanPool();

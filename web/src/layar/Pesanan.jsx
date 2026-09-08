@@ -53,15 +53,15 @@ export function Pesanan() {
   return (
     <>
       <div className="judul-layar">
-        <h1>Pesanan saya</h1>
-        <p>Pembatalan mengembalikan saldo dan porsinya utuh.</p>
+        <h1>Pesanan toko</h1>
+        <p>Pembatalan mengembalikan deposit dan unitnya utuh.</p>
       </div>
 
       {galat && <div className="pesan gagal">{galat}</div>}
 
       {daftar === null && <div className="kartu kosong">Memuat…</div>}
       {daftar?.length === 0 && (
-        <div className="kartu kosong">Belum ada pesanan. Buka halaman Menu untuk memesan.</div>
+        <div className="kartu kosong">Belum ada pesanan. Buka halaman Pesan untuk memesan.</div>
       )}
 
       {daftar?.map((p) => {
@@ -103,7 +103,7 @@ export function Pesanan() {
                 <thead>
                   <tr>
                     <th>Menu</th>
-                    <th className="angka">Porsi</th>
+                    <th className="angka">Unit</th>
                     <th className="angka">Harga satuan</th>
                     <th className="angka">Subtotal</th>
                   </tr>

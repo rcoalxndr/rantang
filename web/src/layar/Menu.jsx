@@ -46,7 +46,7 @@ export function Menu({ keSaldo }) {
         .filter((i) => i.jumlah > 0);
 
       const d = await api.post('/orders', { tanggal: dipilih, item });
-      setSukses(`Pesanan #${d.pesanan.id} masuk. ${keRupiah(d.pesanan.total)} dipotong dari saldomu.`);
+      setSukses(`Pesanan #${d.pesanan.id} masuk. ${keRupiah(d.pesanan.total)} dipotong dari deposit toko.`);
       setJumlah({});
       setHari(await api.get(`/menu?tanggal=${dipilih}`));
     } catch (err) {
@@ -61,8 +61,8 @@ export function Menu({ keSaldo }) {
   return (
     <>
       <div className="judul-layar">
-        <h1>Menu</h1>
-        <p>Dapur hanya memasak sebanyak yang dipesan, jadi porsinya terbatas.</p>
+        <h1>Pesan</h1>
+        <p>Dapur memasak persis sejumlah yang dipesan, jadi unitnya terbatas.</p>
       </div>
 
       {tanggalTersedia.length === 0 && (
@@ -76,7 +76,7 @@ export function Menu({ keSaldo }) {
             {tanggalTersedia.map((t) => (
               <option key={t.tanggal} value={t.tanggal}>
                 {keTanggal(t.tanggal)}
-                {t.masihBisaPesan ? ` — sisa ${t.sisaTotal} porsi` : ' — sudah ditutup'}
+                {t.masihBisaPesan ? ` — sisa ${t.sisaTotal} unit` : ' — sudah ditutup'}
               </option>
             ))}
           </select>
@@ -104,7 +104,7 @@ export function Menu({ keSaldo }) {
                   <th>Menu</th>
                   <th className="angka">Harga</th>
                   <th className="angka">Sisa</th>
-                  <th className="angka">Porsi</th>
+                  <th className="angka">Unit</th>
                 </tr>
               </thead>
               <tbody>
@@ -141,13 +141,13 @@ export function Menu({ keSaldo }) {
             <div className="kartu-kepala">
               <div>
                 <div className="jejak">
-                  {totalPorsi} porsi
+                  {totalPorsi} unit
                 </div>
                 <div className="angka-besar">{keRupiah(totalHarga)}</div>
               </div>
               <div className="baris">
                 <button className="tombol sekunder" onClick={keSaldo}>
-                  Isi saldo
+                  Isi deposit
                 </button>
                 <button
                   className="tombol"
@@ -159,7 +159,7 @@ export function Menu({ keSaldo }) {
               </div>
             </div>
             <p className="jejak" style={{ margin: 0 }}>
-              Pesanan bisa dibatalkan penuh selama belum lewat batas waktu.
+              Pesanan bisa dibatalkan penuh selama belum lewat batas waktu. Setelah itu unitnya sudah masuk daftar produksi.
             </p>
           </div>
         </>

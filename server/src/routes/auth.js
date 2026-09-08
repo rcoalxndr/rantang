@@ -10,8 +10,8 @@ export const routerAuth = Router();
 // menyentuh HTTP sama sekali.
 
 routerAuth.post('/register', async (req, res) => {
-  const { email, kataSandi, nama, telepon, alamat } = req.body ?? {};
-  const user = await daftar({ email, kataSandi, nama, telepon, alamat });
+  const { email, kataSandi, nama, pic, telepon, alamat } = req.body ?? {};
+  const user = await daftar({ email, kataSandi, nama, pic, telepon, alamat });
   res.status(201).json({ user });
 });
 

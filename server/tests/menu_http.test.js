@@ -46,8 +46,8 @@ async function masukSebagai(peran) {
     method: 'POST',
     body: { email, kataSandi: 'kata-sandi-aman', nama: 'Uji', alamat: 'Jl. Uji 1' },
   });
-  if (peran === 'kitchen') {
-    await pool.query(`UPDATE users SET peran = 'kitchen' WHERE email = $1`, [email]);
+  if (peran === 'dapur') {
+    await pool.query(`UPDATE users SET peran = 'dapur' WHERE email = $1`, [email]);
   }
   const login = await kirim('/api/auth/login', {
     method: 'POST',
@@ -60,9 +60,9 @@ const BESOK = '2026-10-01';
 const CUTOFF = '2026-09-30T20:00:00+07:00';
 
 test('pelanggan tidak boleh menyentuh endpoint dapur', async () => {
-  const cookie = await masukSebagai('customer');
+  const cookie = await masukSebagai('toko');
 
-  const buatMenu = await kirim('/api/kitchen/menu-items', {
+  const buatMenu = await kirim('/api/dapur/menu-items', {
     method: 'POST',
     cookie,
     body: { nama: 'Nakal', harga: 1000 },
@@ -70,7 +70,7 @@ test('pelanggan tidak boleh menyentuh endpoint dapur', async () => {
   assert.equal(buatMenu.status, 403);
   assert.equal((await buatMenu.json()).error.code, 'TIDAK_BERWENANG');
 
-  const bukaTanggal = await kirim('/api/kitchen/service-days', {
+  const bukaTanggal = await kirim('/api/dapur/service-days', {
     method: 'POST',
     cookie,
     body: { tanggal: BESOK, batasWaktuPesan: CUTOFF, item: [] },
@@ -79,15 +79,15 @@ test('pelanggan tidak boleh menyentuh endpoint dapur', async () => {
 });
 
 test('tanpa masuk sama sekali, endpoint dapur menjawab 401', async () => {
-  const res = await kirim('/api/kitchen/menu-items');
+  const res = await kirim('/api/dapur/menu-items');
   assert.equal(res.status, 401);
   assert.equal((await res.json()).error.code, 'BELUM_MASUK');
 });
 
 test('dapur bisa membuat menu lalu membuka tanggal layanan', async () => {
-  const cookie = await masukSebagai('kitchen');
+  const cookie = await masukSebagai('dapur');
 
-  const buat = await kirim('/api/kitchen/menu-items', {
+  const buat = await kirim('/api/dapur/menu-items', {
     method: 'POST',
     cookie,
     body: { nama: 'Katsu Ayam Saus Rendang', deskripsi: 'Enak', harga: 32000 },
@@ -96,7 +96,7 @@ test('dapur bisa membuat menu lalu membuka tanggal layanan', async () => {
   const { item: menu } = await buat.json();
   assert.equal(menu.harga, 32000);
 
-  const buka = await kirim('/api/kitchen/service-days', {
+  const buka = await kirim('/api/dapur/service-days', {
     method: 'POST',
     cookie,
     body: { tanggal: BESOK, batasWaktuPesan: CUTOFF, item: [{ menuItemId: menu.id, kuota: 40 }] },
@@ -109,15 +109,15 @@ test('dapur bisa membuat menu lalu membuka tanggal layanan', async () => {
 });
 
 test('membuka tanggal dengan kuota tidak valid dijawab 422', async () => {
-  const cookie = await masukSebagai('kitchen');
-  const buat = await kirim('/api/kitchen/menu-items', {
+  const cookie = await masukSebagai('dapur');
+  const buat = await kirim('/api/dapur/menu-items', {
     method: 'POST',
     cookie,
     body: { nama: 'Menu', harga: 20000 },
   });
   const { item: menu } = await buat.json();
 
-  const res = await kirim('/api/kitchen/service-days', {
+  const res = await kirim('/api/dapur/service-days', {
     method: 'POST',
     cookie,
     body: { tanggal: BESOK, batasWaktuPesan: CUTOFF, item: [{ menuItemId: menu.id, kuota: 0 }] },
@@ -128,14 +128,14 @@ test('membuka tanggal dengan kuota tidak valid dijawab 422', async () => {
 });
 
 test('menu publik bisa dilihat tanpa masuk', async () => {
-  const cookie = await masukSebagai('kitchen');
-  const buat = await kirim('/api/kitchen/menu-items', {
+  const cookie = await masukSebagai('dapur');
+  const buat = await kirim('/api/dapur/menu-items', {
     method: 'POST',
     cookie,
     body: { nama: 'Ayam Bakar Bumbu Bali', harga: 30000 },
   });
   const { item: menu } = await buat.json();
-  await kirim('/api/kitchen/service-days', {
+  await kirim('/api/dapur/service-days', {
     method: 'POST',
     cookie,
     body: { tanggal: BESOK, batasWaktuPesan: CUTOFF, item: [{ menuItemId: menu.id, kuota: 25 }] },
@@ -165,14 +165,14 @@ test('tanggal tidak berformat dijawab 422', async () => {
 });
 
 test('daftar tanggal layanan bisa dilihat publik', async () => {
-  const cookie = await masukSebagai('kitchen');
-  const buat = await kirim('/api/kitchen/menu-items', {
+  const cookie = await masukSebagai('dapur');
+  const buat = await kirim('/api/dapur/menu-items', {
     method: 'POST',
     cookie,
     body: { nama: 'Menu', harga: 20000 },
   });
   const { item: menu } = await buat.json();
-  await kirim('/api/kitchen/service-days', {
+  await kirim('/api/dapur/service-days', {
     method: 'POST',
     cookie,
     body: { tanggal: BESOK, batasWaktuPesan: CUTOFF, item: [{ menuItemId: menu.id, kuota: 12 }] },
@@ -188,20 +188,20 @@ test('daftar tanggal layanan bisa dilihat publik', async () => {
 });
 
 test('dapur bisa menutup tanggal, menu jadi tidak bisa dipesan', async () => {
-  const cookie = await masukSebagai('kitchen');
-  const buat = await kirim('/api/kitchen/menu-items', {
+  const cookie = await masukSebagai('dapur');
+  const buat = await kirim('/api/dapur/menu-items', {
     method: 'POST',
     cookie,
     body: { nama: 'Menu', harga: 20000 },
   });
   const { item: menu } = await buat.json();
-  await kirim('/api/kitchen/service-days', {
+  await kirim('/api/dapur/service-days', {
     method: 'POST',
     cookie,
     body: { tanggal: BESOK, batasWaktuPesan: CUTOFF, item: [{ menuItemId: menu.id, kuota: 12 }] },
   });
 
-  const tutup = await kirim(`/api/kitchen/service-days/${BESOK}/close`, {
+  const tutup = await kirim(`/api/dapur/service-days/${BESOK}/close`, {
     method: 'POST',
     cookie,
   });

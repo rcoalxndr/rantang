@@ -14,7 +14,7 @@ export function DapurKelola() {
   const [kuota, setKuota] = useState({});
 
   const muat = useCallback(() => {
-    Promise.all([api.get('/kitchen/menu-items'), api.get('/kitchen/topups')])
+    Promise.all([api.get('/dapur/menu-items'), api.get('/dapur/topups')])
       .then(([m, t]) => {
         setMenu(m.item);
         setAntrean(t.topup);
@@ -39,7 +39,7 @@ export function DapurKelola() {
   }
 
   const tambahMenu = lapor(async () => {
-    await api.post('/kitchen/menu-items', {
+    await api.post('/dapur/menu-items', {
       nama: menuBaru.nama,
       deskripsi: menuBaru.deskripsi,
       harga: Number(menuBaru.harga),
@@ -56,7 +56,7 @@ export function DapurKelola() {
     // Batas waktu dikirim sebagai waktu WIB eksplisit (+07:00). Kalau dikirim
     // tanpa zona, server akan menafsirkannya menurut zonanya sendiri — dan
     // server produksi hampir selalu berjalan di UTC.
-    await api.post('/kitchen/service-days', {
+    await api.post('/dapur/service-days', {
       tanggal: hari.tanggal,
       batasWaktuPesan: `${hari.tanggal}T${hari.jam}:00+07:00`,
       item,
@@ -69,7 +69,7 @@ export function DapurKelola() {
     setSibuk(id);
     setGalat(null);
     try {
-      await api.post(`/kitchen/topups/${id}/${keputusan}`);
+      await api.post(`/dapur/topups/${id}/${keputusan}`);
       muat();
     } catch (e) {
       setGalat(e.message);
@@ -82,7 +82,7 @@ export function DapurKelola() {
     <>
       <div className="judul-layar">
         <h1>Kelola</h1>
-        <p>Katalog menu, pembukaan hari layanan, dan antrean pengisian saldo.</p>
+        <p>Katalog menu, pembukaan hari produksi, dan antrean pengisian deposit toko.</p>
       </div>
 
       {galat && <div className="pesan gagal">{galat}</div>}
@@ -90,7 +90,7 @@ export function DapurKelola() {
 
       <div className="kartu">
         <div className="kartu-kepala">
-          <h2>Antrean isi saldo</h2>
+          <h2>Antrean isi deposit</h2>
           <span className="lencana kunyit">{antrean.length} menunggu</span>
         </div>
 
@@ -99,7 +99,7 @@ export function DapurKelola() {
           <table>
             <thead>
               <tr>
-                <th>Pengaju</th>
+                <th>Toko</th>
                 <th>Catatan bukti</th>
                 <th>Waktu</th>
                 <th className="angka">Nominal</th>
@@ -142,9 +142,9 @@ export function DapurKelola() {
       </div>
 
       <form className="kartu" onSubmit={bukaHari}>
-        <h2>Buka hari layanan</h2>
+        <h2>Buka hari produksi</h2>
         <p className="jejak" style={{ marginTop: 0 }}>
-          Tentukan kuota tiap menu. Kuota nol berarti menu itu tidak dimasak hari tersebut.
+          Kuota adalah batas unit yang sanggup dimasak. Kuota nol berarti menu itu tidak diproduksi hari tersebut.
         </p>
 
         <div className="baris" style={{ marginBottom: '0.9rem' }}>

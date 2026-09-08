@@ -29,7 +29,7 @@ function hashUmpan() {
   return umpanPromise;
 }
 
-export async function daftar({ email, kataSandi, nama, telepon = '', alamat = '' }) {
+export async function daftar({ email, kataSandi, nama, pic = '', telepon = '', alamat = '' }) {
   const emailBersih = normalkanEmail(email);
 
   if (typeof nama !== 'string' || nama.trim() === '') throw new NamaKosong();
@@ -40,10 +40,17 @@ export async function daftar({ email, kataSandi, nama, telepon = '', alamat = ''
 
   try {
     const { rows } = await pool.query(
-      `INSERT INTO users (email, password_hash, nama, telepon, alamat)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, email, nama, telepon, alamat, peran, saldo`,
-      [emailBersih, hash, nama.trim(), String(telepon ?? ''), String(alamat ?? '')]
+      `INSERT INTO users (email, password_hash, nama, pic, telepon, alamat)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id, email, nama, pic, telepon, alamat, peran, saldo`,
+      [
+        emailBersih,
+        hash,
+        nama.trim(),
+        String(pic ?? ''),
+        String(telepon ?? ''),
+        String(alamat ?? ''),
+      ]
     );
     return rows[0];
   } catch (err) {
@@ -60,7 +67,7 @@ export async function masuk({ email, kataSandi }) {
   const emailBersih = typeof email === 'string' ? email.trim().toLowerCase() : '';
 
   const { rows } = await pool.query(
-    `SELECT id, email, nama, telepon, alamat, peran, saldo, password_hash
+    `SELECT id, email, nama, pic, telepon, alamat, peran, saldo, password_hash
      FROM users WHERE email = $1`,
     [emailBersih]
   );

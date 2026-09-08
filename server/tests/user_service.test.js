@@ -27,10 +27,10 @@ const AKUN = {
   alamat: 'Jl. Melati No. 12',
 };
 
-test('pendaftaran membuat user dengan peran customer dan saldo nol', async () => {
+test('pendaftaran membuat user dengan peran toko dan saldo nol', async () => {
   const user = await daftar(AKUN);
   assert.equal(user.email, 'rico@contoh.test');
-  assert.equal(user.peran, 'customer');
+  assert.equal(user.peran, 'toko');
   assert.equal(Number(user.saldo), 0);
   assert.ok(user.id);
 });

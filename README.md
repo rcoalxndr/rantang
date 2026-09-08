@@ -45,8 +45,9 @@ npm run seed
 ```
 
 Seed membuat tiga akun contoh — `dapur@rantang.test` (peran dapur),
-`rico@contoh.test`, `sinta@contoh.test` — semuanya dengan kata sandi
-`rantang-demo-2026`. Hanya untuk database pengembangan di mesin sendiri.
+`melati@toserba.test` dan `kenanga@toserba.test` (peran toko) — semuanya dengan
+kata sandi `rantang-demo-2026`. Hanya untuk database pengembangan di mesin
+sendiri.
 
 ## Test
 
@@ -71,6 +72,7 @@ server/
   src/routes/        terjemahan HTTP <-> fungsi
   migrations/        berkas SQL bernomor, dijalankan berurutan
   scripts/           pelaksana migrasi + data contoh
+  migrations/004     penyesuaian saat konsep pindah ke jalur ritel
   tests/             159 test
 web/
   src/api.js         pembungkus fetch + error domain
@@ -102,7 +104,7 @@ cd web && npm install && npm run dev
 ```
 
 Buka `http://localhost:5173`. Masuk dengan salah satu akun contoh di atas —
-`dapur@rantang.test` untuk sisi dapur, `rico@contoh.test` untuk sisi pelanggan.
+`dapur@rantang.test` untuk sisi dapur, `melati@toserba.test` untuk sisi toko.
 
 Frontend memakai proxy Vite: permintaan ke `/api` diteruskan ke `localhost:3000`
 di belakang layar, sehingga browser melihat keduanya sebagai satu asal. Itulah
@@ -122,8 +124,8 @@ middleware peran, CORS ditulis sendiri. Endpoint: `register`, `login`,
 `logout`, `me`.
 
 **Fase 3 — menu & tanggal layanan.** Dapur mengelola katalog menu, membuka
-tanggal layanan dengan kuota dan batas waktu, serta menutupnya. Pelanggan (dan
-siapa pun) bisa melihat menu per tanggal beserta sisa porsi. Harga di-snapshot
+hari produksi dengan kuota dan batas waktu, serta menutupnya. Toko (dan siapa
+pun) bisa melihat menu per tanggal beserta sisa unit. Harga di-snapshot
 per tanggal sehingga perubahan harga katalog tidak mengubah tanggal yang sudah
 dibuka.
 
@@ -131,18 +133,18 @@ dibuka.
 dan penulisan disatukan dalam satu `UPDATE ... WHERE` sehingga tidak ada celah
 antara keduanya; uji perebutan dibuktikan mendeteksi versi naif.
 
-**Fase 5 — saldo prabayar.** Pengisian saldo lewat transfer manual yang
+**Fase 5 — deposit toko.** Pengisian deposit lewat transfer manual yang
 dikonfirmasi dapur, buku besar sebagai sumber kebenaran, dan endpoint HTTP
-untuk seluruh alur pelanggan.
+untuk seluruh alur toko.
 
-**Fase 6 — dasbor dapur.** Daftar produksi harian (berapa porsi tiap menu yang
-harus dimasak) dan daftar antar (siapa, ke mana, apa isinya), plus penandaan
-pesanan terkirim. Jumlah produksi dihitung ulang dari pesanan yang sebenarnya,
+**Fase 6 — dasbor dapur.** Daftar produksi harian (berapa unit tiap menu yang
+harus dimasak) dan daftar kirim (toko mana, PIC siapa, ke mana, apa isinya),
+plus penandaan pesanan terkirim. Jumlah produksi dihitung ulang dari pesanan yang sebenarnya,
 bukan dibaca dari kolom `terjual` — ada test yang menjaga keduanya selalu sama.
 
-**Fase 7 — frontend React.** Enam layar untuk dua peran: menu dan pemesanan,
-pesanan saya, saldo dan riwayat mutasi untuk pelanggan; hari masak (produksi +
-antar) dan kelola (antrean saldo, buka tanggal, katalog) untuk dapur. Tanpa
+**Fase 7 — frontend React.** Enam layar untuk dua peran: pesan, pesanan toko,
+deposit dan riwayat mutasi untuk toko; hari produksi (produksi + kirim) dan
+kelola (antrean deposit, buka hari, katalog) untuk dapur. Tanpa
 pustaka routing maupun pengambil data — React, Vite, dan `fetch` saja.
 
 159 test lulus. Backend dan frontend keduanya berjalan.

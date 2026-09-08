@@ -5,7 +5,7 @@ import { cors } from './http/cors.js';
 import { KesalahanDomain } from './errors.js';
 import { routerAuth } from './routes/auth.js';
 import { routerMenu } from './routes/menu.js';
-import { routerKitchen } from './routes/kitchen.js';
+import { routerDapur } from './routes/dapur.js';
 import { routerPesanan, routerTopup, routerSaldo } from './routes/pelanggan.js';
 
 /**
@@ -38,7 +38,7 @@ export function buatApp() {
   app.get('/api/health', (_req, res) => res.json({ ok: true }));
   app.use('/api/auth', routerAuth);
   app.use('/api', routerMenu);
-  app.use('/api/kitchen', routerKitchen);
+  app.use('/api/dapur', routerDapur);
   app.use('/api/orders', routerPesanan);
   app.use('/api/topups', routerTopup);
   app.use('/api/balance', routerSaldo);

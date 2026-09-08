@@ -12,7 +12,7 @@ beforeEach(async () => {
   await resetDatabase();
 });
 
-async function buatUser(peran = 'customer') {
+async function buatUser(peran = 'toko') {
   const { rows } = await pool.query(
     `INSERT INTO users (email, password_hash, nama, peran)
      VALUES ($1, 'h', 'Uji', $2) RETURNING id`,
@@ -22,12 +22,12 @@ async function buatUser(peran = 'customer') {
 }
 
 test('sesi baru bisa dibuat dan dibaca kembali', async () => {
-  const userId = await buatUser('kitchen');
+  const userId = await buatUser('dapur');
   const sesi = await buatSesi(userId);
 
   const hasil = await ambilSesi(sesi.id);
   assert.equal(String(hasil.user_id), String(userId));
-  assert.equal(hasil.peran, 'kitchen');
+  assert.equal(hasil.peran, 'dapur');
 });
 
 test('id sesi panjang dan tidak mudah ditebak', async () => {

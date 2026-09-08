@@ -71,7 +71,7 @@ export async function daftarTopupPending() {
 /** Memastikan peninjau benar-benar berperan dapur. */
 async function pastikanDapur(c, reviewerId) {
   const { rows } = await c.query('SELECT peran FROM users WHERE id = $1', [reviewerId]);
-  if (rows.length === 0 || rows[0].peran !== 'kitchen') throw new TidakBerwenang();
+  if (rows.length === 0 || rows[0].peran !== 'dapur') throw new TidakBerwenang();
 }
 
 /**

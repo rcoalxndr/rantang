@@ -3,7 +3,7 @@ import { api } from '../api.js';
 import { keRupiah, keWaktu } from '../format.js';
 
 const JENIS = {
-  topup: 'Isi saldo',
+  topup: 'Isi deposit',
   order: 'Pesanan',
   refund: 'Pengembalian',
 };
@@ -58,8 +58,8 @@ export function Saldo() {
   return (
     <>
       <div className="judul-layar">
-        <h1>Saldo</h1>
-        <p>Isi saldo lewat transfer, lalu dapur mengonfirmasinya secara manual.</p>
+        <h1>Deposit</h1>
+        <p>Isi deposit lewat transfer, lalu dapur mengonfirmasinya secara manual. Pesanan memotong deposit.</p>
       </div>
 
       {galat && <div className="pesan gagal">{galat}</div>}
@@ -67,12 +67,12 @@ export function Saldo() {
 
       <div className="kisi">
         <div className="kartu">
-          <div className="jejak">Saldo tersedia</div>
+          <div className="jejak">Deposit tersedia</div>
           <div className="angka-besar">{keRupiah(data?.saldo ?? 0)}</div>
         </div>
 
         <form className="kartu" onSubmit={ajukan}>
-          <h3>Ajukan isi saldo</h3>
+          <h3>Ajukan isi deposit</h3>
           <div className="bidang">
             <label htmlFor="nominal">Nominal (rupiah)</label>
             <input
@@ -89,7 +89,7 @@ export function Saldo() {
             <label htmlFor="catatan">Catatan bukti transfer</label>
             <input
               id="catatan"
-              placeholder="mis. BCA 19.40 a.n. Rico"
+              placeholder="mis. BCA 19.40 a.n. Toserba Melati"
               value={catatan}
               onChange={(e) => setCatatan(e.target.value)}
             />
@@ -101,7 +101,7 @@ export function Saldo() {
       </div>
 
       <div className="kartu">
-        <h2>Pengajuan isi saldo</h2>
+        <h2>Pengajuan isi deposit</h2>
         {pengajuan.length === 0 && <div className="kosong">Belum ada pengajuan.</div>}
         {pengajuan.length > 0 && (
           <table>
@@ -135,7 +135,7 @@ export function Saldo() {
       <div className="kartu">
         <h2>Riwayat mutasi</h2>
         <p className="jejak" style={{ marginTop: 0 }}>
-          Setiap pergerakan saldo tercatat sebagai baris baru dan tidak pernah dihapus.
+          Setiap pergerakan deposit tercatat sebagai baris baru dan tidak pernah dihapus.
         </p>
         {data?.riwayat.length === 0 && <div className="kosong">Belum ada mutasi.</div>}
         {data?.riwayat.length > 0 && (

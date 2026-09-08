@@ -18,8 +18,8 @@ export function DapurHari() {
     setProduksi(null);
     setAntar(null);
     Promise.all([
-      api.get(`/kitchen/production?tanggal=${tanggal}`),
-      api.get(`/kitchen/deliveries?tanggal=${tanggal}`),
+      api.get(`/dapur/production?tanggal=${tanggal}`),
+      api.get(`/dapur/deliveries?tanggal=${tanggal}`),
     ])
       .then(([p, a]) => {
         setProduksi(p);
@@ -33,7 +33,7 @@ export function DapurHari() {
   async function tandai(id) {
     setSibuk(id);
     try {
-      await api.post(`/kitchen/orders/${id}/deliver`);
+      await api.post(`/dapur/orders/${id}/deliver`);
       muat();
     } catch (e) {
       setGalat(e.message);
@@ -45,8 +45,8 @@ export function DapurHari() {
   return (
     <>
       <div className="judul-layar">
-        <h1>Hari masak</h1>
-        <p>Berapa porsi yang harus dimasak, dan ke mana saja diantar.</p>
+        <h1>Hari produksi</h1>
+        <p>Berapa unit yang harus dimasak, dan ke toko mana saja dikirim.</p>
       </div>
 
       <div className="kartu">
@@ -64,7 +64,7 @@ export function DapurHari() {
               <div className="jejak">{keTanggal(produksi.tanggal)}</div>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div className="jejak">Total porsi</div>
+              <div className="jejak">Total unit</div>
               <div className="angka-besar">{produksi.totalPorsi}</div>
             </div>
           </div>
@@ -100,7 +100,7 @@ export function DapurHari() {
       {antar && (
         <div className="kartu">
           <div className="kartu-kepala">
-            <h2>Daftar antar</h2>
+            <h2>Daftar kirim</h2>
             <span className="lencana">{antar.totalPesanan} pesanan</span>
           </div>
 
@@ -109,7 +109,7 @@ export function DapurHari() {
             <table>
               <thead>
                 <tr>
-                  <th>Pelanggan</th>
+                  <th>Toko</th>
                   <th>Alamat</th>
                   <th>Isi</th>
                   <th className="angka">Total</th>
@@ -121,7 +121,9 @@ export function DapurHari() {
                   <tr key={p.id}>
                     <td>
                       <strong>{p.nama}</strong>
-                      <div className="jejak">{p.telepon || '—'}</div>
+                      <div className="jejak">
+                        {[p.pic, p.telepon].filter(Boolean).join(' · ') || '—'}
+                      </div>
                     </td>
                     <td>{p.alamatAntar}</td>
                     <td>
@@ -134,14 +136,14 @@ export function DapurHari() {
                     <td className="angka">{keRupiah(p.total)}</td>
                     <td>
                       {p.status === 'delivered' ? (
-                        <span className="lencana kunyit">Diantar</span>
+                        <span className="lencana kunyit">Terkirim</span>
                       ) : (
                         <button
                           className="tombol sekunder"
                           disabled={sibuk === p.id}
                           onClick={() => tandai(p.id)}
                         >
-                          {sibuk === p.id ? '…' : 'Tandai diantar'}
+                          {sibuk === p.id ? '…' : 'Tandai terkirim'}
                         </button>
                       )}
                     </td>

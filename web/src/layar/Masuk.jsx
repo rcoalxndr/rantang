@@ -8,6 +8,7 @@ export function Masuk() {
     email: '',
     kataSandi: '',
     nama: '',
+    pic: '',
     telepon: '',
     alamat: '',
   });
@@ -33,10 +34,10 @@ export function Masuk() {
   return (
     <div className="masuk-bungkus">
       <div className="judul-layar">
-        <h1>{modeDaftar ? 'Buat akun' : 'Masuk'}</h1>
+        <h1>{modeDaftar ? 'Daftarkan toko' : 'Masuk'}</h1>
         <p>
           {modeDaftar
-            ? 'Isi saldo di muka, lalu pesan untuk hari yang kamu mau.'
+            ? 'Pesan sebelum batas waktu, kami masak persis sejumlah pesananmu.'
             : 'Makan lengkap, tinggal panaskan.'}
         </p>
       </div>
@@ -71,27 +72,31 @@ export function Masuk() {
         {modeDaftar && (
           <>
             <div className="bidang">
-              <label htmlFor="nama">Nama</label>
+              <label htmlFor="nama">Nama toko</label>
               <input id="nama" value={isian.nama} onChange={ubah('nama')} required />
+            </div>
+            <div className="bidang">
+              <label htmlFor="pic">Penanggung jawab (PIC)</label>
+              <input id="pic" value={isian.pic} onChange={ubah('pic')} required />
             </div>
             <div className="bidang">
               <label htmlFor="telepon">Nomor telepon</label>
               <input id="telepon" value={isian.telepon} onChange={ubah('telepon')} />
             </div>
             <div className="bidang">
-              <label htmlFor="alamat">Alamat pengantaran</label>
+              <label htmlFor="alamat">Alamat toko</label>
               <textarea id="alamat" rows={2} value={isian.alamat} onChange={ubah('alamat')} />
             </div>
           </>
         )}
 
         <button className="tombol" type="submit" disabled={sibuk}>
-          {sibuk ? 'Sebentar…' : modeDaftar ? 'Daftar' : 'Masuk'}
+          {sibuk ? 'Sebentar…' : modeDaftar ? 'Daftarkan' : 'Masuk'}
         </button>
       </form>
 
       <p className="jejak" style={{ textAlign: 'center' }}>
-        {modeDaftar ? 'Sudah punya akun? ' : 'Belum punya akun? '}
+        {modeDaftar ? 'Toko sudah terdaftar? ' : 'Toko belum terdaftar? '}
         <button
           type="button"
           className="tombol sekunder"

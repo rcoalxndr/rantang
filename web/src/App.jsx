@@ -7,14 +7,14 @@ import { Saldo } from './layar/Saldo.jsx';
 import { DapurHari } from './layar/DapurHari.jsx';
 import { DapurKelola } from './layar/DapurKelola.jsx';
 
-const RUTE_PELANGGAN = [
-  { jalur: '/', label: 'Menu' },
-  { jalur: '/pesanan', label: 'Pesanan saya' },
-  { jalur: '/saldo', label: 'Saldo' },
+const RUTE_TOKO = [
+  { jalur: '/', label: 'Pesan' },
+  { jalur: '/pesanan', label: 'Pesanan toko' },
+  { jalur: '/saldo', label: 'Deposit' },
 ];
 
 const RUTE_DAPUR = [
-  { jalur: '/', label: 'Hari masak' },
+  { jalur: '/', label: 'Hari produksi' },
   { jalur: '/kelola', label: 'Kelola' },
 ];
 
@@ -41,10 +41,10 @@ export function App() {
     );
   }
 
-  const dapur = user.peran === 'kitchen';
-  const daftarRute = dapur ? RUTE_DAPUR : RUTE_PELANGGAN;
+  const dapur = user.peran === 'dapur';
+  const daftarRute = dapur ? RUTE_DAPUR : RUTE_TOKO;
 
-  // Peta rute dipilih berdasarkan peran, jadi pelanggan tidak punya jalan masuk
+  // Peta rute dipilih berdasarkan peran, jadi akun toko tidak punya jalan masuk
   // ke layar dapur sama sekali. Ini kenyamanan, BUKAN keamanan — yang benar-benar
   // menjaga adalah middleware wajibPeran di server. Menyembunyikan tombol tidak
   // menghentikan siapa pun yang mengetik alamatnya sendiri.

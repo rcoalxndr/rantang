@@ -17,8 +17,9 @@ async function seed() {
     `);
 
     await c.query(
-      `INSERT INTO users (email, password_hash, nama, telepon, alamat, peran)
-       VALUES ('dapur@rantang.test', $1, 'Dapur Rantang', '0800000000', 'Dapur Pusat', 'kitchen')`,
+      `INSERT INTO users (email, password_hash, nama, pic, telepon, alamat, peran)
+       VALUES ('dapur@rantang.test', $1, 'Dapur Rantang', 'Rico', '0800000000',
+               'Dapur Pusat, Jl. Cempaka No. 3', 'dapur')`,
       [hash]
     );
 
@@ -26,19 +27,21 @@ async function seed() {
     // kolom saldo. Aturan sistem ini adalah SUM(credit_ledger) selalu sama
     // dengan users.saldo — data contoh tidak boleh jadi satu-satunya tempat
     // aturan itu dilanggar.
-    const pelanggan = await c.query(
-      `INSERT INTO users (email, password_hash, nama, telepon, alamat, peran, saldo)
+    const toko = await c.query(
+      `INSERT INTO users (email, password_hash, nama, pic, telepon, alamat, peran, saldo)
        VALUES
-         ('rico@contoh.test',  $1, 'Rico',  '0811111111', 'Jl. Melati No. 12', 'customer', 250000),
-         ('sinta@contoh.test', $1, 'Sinta', '0822222222', 'Jl. Kenanga No. 4', 'customer', 64000)
+         ('melati@toserba.test', $1, 'Toserba Melati',   'Bu Sinta', '0811111111',
+          'Jl. Melati No. 12, dekat kampus',            'toko', 250000),
+         ('kenanga@toserba.test', $1, 'Warung Kenanga 24', 'Pak Adi',  '0822222222',
+          'Jl. Kenanga No. 4, seberang halte',          'toko', 64000)
        RETURNING id, saldo`,
       [hash]
     );
 
-    for (const u of pelanggan.rows) {
+    for (const u of toko.rows) {
       await c.query(
         `INSERT INTO credit_ledger (user_id, jumlah, jenis, catatan)
-         VALUES ($1, $2, 'topup', 'saldo awal data contoh')`,
+         VALUES ($1, $2, 'topup', 'deposit awal data contoh')`,
         [u.id, u.saldo]
       );
     }
@@ -77,7 +80,7 @@ async function seed() {
   });
 
   console.log('Data contoh berhasil dimasukkan.');
-  console.log(`Akun contoh: dapur@rantang.test / rico@contoh.test / sinta@contoh.test`);
+  console.log(`Akun contoh: dapur@rantang.test (dapur) / melati@toserba.test / kenanga@toserba.test (toko)`);
   console.log(`Kata sandi semuanya: ${KATA_SANDI_CONTOH}`);
 }
 

@@ -46,8 +46,8 @@ async function masukSebagai(peran, alamat = 'Jl. Melati No. 12') {
     method: 'POST',
     body: { email, kataSandi: 'kata-sandi-aman', nama: 'Uji', alamat },
   });
-  if (peran === 'kitchen') {
-    await pool.query(`UPDATE users SET peran = 'kitchen' WHERE email = $1`, [email]);
+  if (peran === 'dapur') {
+    await pool.query(`UPDATE users SET peran = 'dapur' WHERE email = $1`, [email]);
   }
   const login = await kirim('/api/auth/login', {
     method: 'POST',
@@ -61,14 +61,14 @@ const CUTOFF = '2029-12-31T20:00:00+07:00';
 
 /** Membuka satu tanggal layanan lewat API dapur, mengembalikan id menu harian. */
 async function siapkanHari(cookieDapur, kuota = 10, harga = 32000) {
-  const buat = await kirim('/api/kitchen/menu-items', {
+  const buat = await kirim('/api/dapur/menu-items', {
     method: 'POST',
     cookie: cookieDapur,
     body: { nama: `Katsu ${Math.random()}`, harga },
   });
   const { item: menu } = await buat.json();
 
-  const buka = await kirim('/api/kitchen/service-days', {
+  const buka = await kirim('/api/dapur/service-days', {
     method: 'POST',
     cookie: cookieDapur,
     body: { tanggal: TANGGAL, batasWaktuPesan: CUTOFF, item: [{ menuItemId: menu.id, kuota }] },
@@ -86,7 +86,7 @@ async function isiSaldo(cookiePelanggan, cookieDapur, nominal) {
   });
   const { topup } = await ajukan.json();
 
-  const setujui = await kirim(`/api/kitchen/topups/${topup.id}/approve`, {
+  const setujui = await kirim(`/api/dapur/topups/${topup.id}/approve`, {
     method: 'POST',
     cookie: cookieDapur,
   });
@@ -94,8 +94,8 @@ async function isiSaldo(cookiePelanggan, cookieDapur, nominal) {
 }
 
 test('alur lengkap: isi saldo, pesan, lihat, batalkan', async () => {
-  const dapur = await masukSebagai('kitchen');
-  const pelanggan = await masukSebagai('customer', 'Jl. Kenanga No. 4');
+  const dapur = await masukSebagai('dapur');
+  const pelanggan = await masukSebagai('toko', 'Jl. Kenanga No. 4');
   const menuHarianId = await siapkanHari(dapur, 10);
 
   const isi = await isiSaldo(pelanggan, dapur, 200000);
@@ -131,8 +131,8 @@ test('alur lengkap: isi saldo, pesan, lihat, batalkan', async () => {
 });
 
 test('memesan tanpa saldo dijawab 409', async () => {
-  const dapur = await masukSebagai('kitchen');
-  const pelanggan = await masukSebagai('customer');
+  const dapur = await masukSebagai('dapur');
+  const pelanggan = await masukSebagai('toko');
   const menuHarianId = await siapkanHari(dapur);
 
   const res = await kirim('/api/orders', {
@@ -146,8 +146,8 @@ test('memesan tanpa saldo dijawab 409', async () => {
 });
 
 test('memesan melebihi kuota dijawab 409 KUOTA_HABIS', async () => {
-  const dapur = await masukSebagai('kitchen');
-  const pelanggan = await masukSebagai('customer');
+  const dapur = await masukSebagai('dapur');
+  const pelanggan = await masukSebagai('toko');
   const menuHarianId = await siapkanHari(dapur, 1);
   await isiSaldo(pelanggan, dapur, 500000);
 
@@ -170,9 +170,9 @@ test('memesan tanpa masuk dijawab 401', async () => {
 });
 
 test('pelanggan lain tidak bisa membuka pesanan yang bukan miliknya', async () => {
-  const dapur = await masukSebagai('kitchen');
-  const pemilik = await masukSebagai('customer');
-  const orangLain = await masukSebagai('customer');
+  const dapur = await masukSebagai('dapur');
+  const pemilik = await masukSebagai('toko');
+  const orangLain = await masukSebagai('toko');
   const menuHarianId = await siapkanHari(dapur);
   await isiSaldo(pemilik, dapur, 200000);
 
@@ -196,7 +196,7 @@ test('pelanggan lain tidak bisa membuka pesanan yang bukan miliknya', async () =
 });
 
 test('pelanggan tidak bisa menyetujui pengisian saldonya sendiri', async () => {
-  const pelanggan = await masukSebagai('customer');
+  const pelanggan = await masukSebagai('toko');
 
   const ajukan = await kirim('/api/topups', {
     method: 'POST',
@@ -205,7 +205,7 @@ test('pelanggan tidak bisa menyetujui pengisian saldonya sendiri', async () => {
   });
   const { topup } = await ajukan.json();
 
-  const setujui = await kirim(`/api/kitchen/topups/${topup.id}/approve`, {
+  const setujui = await kirim(`/api/dapur/topups/${topup.id}/approve`, {
     method: 'POST',
     cookie: pelanggan,
   });
@@ -217,8 +217,8 @@ test('pelanggan tidak bisa menyetujui pengisian saldonya sendiri', async () => {
 });
 
 test('dapur melihat antrean pengisian saldo dan bisa menolaknya', async () => {
-  const dapur = await masukSebagai('kitchen');
-  const pelanggan = await masukSebagai('customer');
+  const dapur = await masukSebagai('dapur');
+  const pelanggan = await masukSebagai('toko');
 
   const ajukan = await kirim('/api/topups', {
     method: 'POST',
@@ -227,11 +227,11 @@ test('dapur melihat antrean pengisian saldo dan bisa menolaknya', async () => {
   });
   const { topup } = await ajukan.json();
 
-  const antrean = await (await kirim('/api/kitchen/topups', { cookie: dapur })).json();
+  const antrean = await (await kirim('/api/dapur/topups', { cookie: dapur })).json();
   assert.equal(antrean.topup.length, 1);
   assert.equal(antrean.topup[0].nominal, 150000);
 
-  const tolak = await kirim(`/api/kitchen/topups/${topup.id}/reject`, {
+  const tolak = await kirim(`/api/dapur/topups/${topup.id}/reject`, {
     method: 'POST',
     cookie: dapur,
   });
@@ -246,7 +246,7 @@ test('dapur melihat antrean pengisian saldo dan bisa menolaknya', async () => {
 });
 
 test('nominal isi saldo tidak valid dijawab 422', async () => {
-  const pelanggan = await masukSebagai('customer');
+  const pelanggan = await masukSebagai('toko');
   const res = await kirim('/api/topups', {
     method: 'POST',
     cookie: pelanggan,
@@ -257,9 +257,9 @@ test('nominal isi saldo tidak valid dijawab 422', async () => {
 });
 
 test('daftar pesanan saya hanya berisi milik sendiri', async () => {
-  const dapur = await masukSebagai('kitchen');
-  const a = await masukSebagai('customer');
-  const b = await masukSebagai('customer');
+  const dapur = await masukSebagai('dapur');
+  const a = await masukSebagai('toko');
+  const b = await masukSebagai('toko');
   const menuHarianId = await siapkanHari(dapur, 10);
   await isiSaldo(a, dapur, 200000);
   await isiSaldo(b, dapur, 200000);

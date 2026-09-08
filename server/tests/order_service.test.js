@@ -546,7 +546,7 @@ test('20 pemesanan bersamaan untuk 1 porsi terakhir: tepat 1 berhasil', async ()
 
   // 19 pelanggan yang gagal tidak boleh kehilangan uang sepeser pun.
   const saldo = await pool.query(
-    `SELECT COUNT(*)::int AS n FROM users WHERE saldo = 100000 AND peran = 'customer'`
+    `SELECT COUNT(*)::int AS n FROM users WHERE saldo = 100000 AND peran = 'toko'`
   );
   assert.equal(saldo.rows[0].n, 19);
 });

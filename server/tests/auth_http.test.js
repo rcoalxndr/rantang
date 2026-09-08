@@ -63,7 +63,7 @@ test('pendaftaran mengembalikan 201 dan data user tanpa hash', async () => {
 
   const { user } = await res.json();
   assert.equal(user.email, 'rico@contoh.test');
-  assert.equal(user.peran, 'customer');
+  assert.equal(user.peran, 'toko');
   assert.equal(user.password_hash, undefined);
 });
 
@@ -202,7 +202,7 @@ test('wajibPeran menolak peran yang salah dengan 403', async () => {
   const mini = express();
   mini.use(bacaCookie);
   mini.use(lampirkanSesi);
-  mini.get('/khusus-dapur', wajibPeran('kitchen'), (_req, res) => res.json({ ok: true }));
+  mini.get('/khusus-dapur', wajibPeran('dapur'), (_req, res) => res.json({ ok: true }));
   mini.use((err, _req, res, _next) =>
     res.status(err.status ?? 500).json({ error: { code: err.kode } })
   );
@@ -227,7 +227,7 @@ test('wajibPeran menolak peran yang salah dengan 403', async () => {
     assert.equal((await sebagaiPelanggan.json()).error.code, 'TIDAK_BERWENANG');
 
     // Naikkan perannya jadi dapur, cookie yang sama sekarang boleh masuk.
-    await pool.query(`UPDATE users SET peran = 'kitchen' WHERE email = $1`, [AKUN.email]);
+    await pool.query(`UPDATE users SET peran = 'dapur' WHERE email = $1`, [AKUN.email]);
     const sebagaiDapur = await fetch(`${miniBase}/khusus-dapur`, { headers: { Cookie: cookie } });
     assert.equal(sebagaiDapur.status, 200);
   } finally {

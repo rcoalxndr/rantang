@@ -11,7 +11,7 @@ beforeEach(async () => {
   await resetDatabase();
 });
 
-async function buatUser(saldo = 0, peran = 'customer') {
+async function buatUser(saldo = 0, peran = 'toko') {
   const { rows } = await pool.query(
     `INSERT INTO users (email, password_hash, nama, alamat, peran, saldo)
      VALUES ($1, 'hash-sementara', 'Uji', 'Jl. Uji No. 1', $2, $3)
@@ -24,7 +24,7 @@ async function buatUser(saldo = 0, peran = 'customer') {
 test('user baru bisa dibuat dengan saldo nol', async () => {
   const user = await buatUser();
   assert.equal(Number(user.saldo), 0);
-  assert.equal(user.peran, 'customer');
+  assert.equal(user.peran, 'toko');
 });
 
 test('saldo tidak boleh minus', async () => {
@@ -43,7 +43,7 @@ test('saldo tidak bisa dibuat minus lewat UPDATE', async () => {
   );
 });
 
-test('peran selain customer/kitchen ditolak', async () => {
+test('peran selain toko/dapur ditolak', async () => {
   await assert.rejects(
     () => buatUser(0, 'admin'),
     (err) => err.code === '23514'

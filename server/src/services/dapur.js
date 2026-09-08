@@ -9,8 +9,8 @@ import {
 
 /**
  * Pesanan yang sudah dibatalkan tidak boleh ikut dihitung di mana pun di
- * berkas ini — dapur tidak memasak porsi yang batal, dan kurir tidak
- * mengantarnya. Yang dihitung hanya 'confirmed' dan 'delivered'.
+ * berkas ini — dapur tidak memasak unit yang batal, dan kurir tidak
+ * mengantarnya ke toko. Yang dihitung hanya 'confirmed' dan 'delivered'.
  */
 const STATUS_AKTIF = ['confirmed', 'delivered'];
 
@@ -22,7 +22,7 @@ async function pastikanTanggalAda(tanggal) {
 }
 
 /**
- * Daftar produksi: berapa porsi tiap menu yang harus dimasak untuk satu tanggal.
+ * Daftar produksi: berapa unit tiap menu yang harus dimasak untuk satu tanggal.
  *
  * Ini layar yang dibuka dapur setiap pagi. Angka `jumlah` dihitung ulang dari
  * pesanan yang sebenarnya, bukan dibaca dari `daily_menu_items.terjual` —
@@ -67,11 +67,12 @@ export async function daftarProduksi(tanggal) {
 }
 
 /**
- * Daftar antar: satu baris per pesanan, lengkap dengan alamat dan isinya.
+ * Daftar kirim: satu baris per pesanan toko, lengkap dengan alamat dan isinya.
  *
  * Alamat diambil dari `orders.alamat_antar` (snapshot saat memesan), bukan dari
- * `users.alamat` sekarang. Kalau pelanggan pindah rumah setelah memesan,
- * makanannya tetap diantar ke alamat yang ia tuliskan saat memesan.
+ * `users.alamat` sekarang. Kalau toko pindah atau memperbarui alamatnya setelah
+ * memesan, kiriman hari itu tetap memakai alamat yang berlaku saat pesanan
+ * dibuat.
  */
 export async function daftarAntar(tanggal) {
   validasiTanggal(tanggal);
@@ -79,7 +80,7 @@ export async function daftarAntar(tanggal) {
 
   const { rows: pesanan } = await pool.query(
     `SELECT o.id, o.status, o.total, o.alamat_antar, o.dibuat_pada,
-            u.nama, u.telepon
+            u.nama, u.pic, u.telepon
      FROM orders o
      JOIN users u ON u.id = o.user_id
      WHERE o.tanggal_layanan = $1::date AND o.status = ANY($2)
@@ -111,6 +112,7 @@ export async function daftarAntar(tanggal) {
     pesanan: pesanan.map((p) => ({
       id: p.id,
       nama: p.nama,
+      pic: p.pic,
       telepon: p.telepon,
       alamatAntar: p.alamat_antar,
       total: p.total,

@@ -1,7 +1,7 @@
 # Rantang — Sistem Pemesanan Prabayar
 
-**Tanggal:** 2026-09-07
-**Status:** Desain, belum diimplementasikan
+**Tanggal:** 2026-09-07 · **direvisi** 2026-09-08 (model bisnis berubah)
+**Status:** Terimplementasi (Fase 0–7)
 **Penulis:** Rico (bersama Claude)
 
 ---
@@ -9,11 +9,32 @@
 ## 1. Konteks & Tujuan
 
 Rantang adalah konsep bisnis makanan siap-santap bergizi seimbang dari mata
-kuliah Kewirausahaan. Model bisnisnya: **D2C, langganan prabayar,
-made-to-demand** — dapur hanya memasak sebanyak yang sudah dipesan, sehingga
-limbah makanan mendekati nol.
+kuliah Kewirausahaan. Model bisnisnya: **penyaluran ke toserba dan toko
+relevan, mengikuti cara kerja konbini Jepang** — toko memesan sejumlah unit
+sebelum batas waktu harian, membelinya putus, dan menanggung sendiri risiko
+barang yang tidak laku. Dapur memasak persis sejumlah pesanan yang masuk,
+sehingga limbah makanan mendekati nol.
 
 Dokumen ini merancang **perangkat lunak pemesanannya**, bukan bisnisnya.
+
+### Catatan revisi 2026-09-08
+
+Versi pertama dokumen ini merancang model **D2C langganan prabayar** —
+konsumen perorangan memesan langsung. Tim kemudian memindahkan konsep ke jalur
+ritel, dan spec ini disesuaikan.
+
+Yang perlu dicatat: **bentuk transaksinya tidak berubah sama sekali.** Ada
+pembeli yang punya akun dan deposit, memesan sejumlah unit dari menu yang
+diproduksi untuk tanggal tertentu, sebelum batas waktu. Yang berganti hanya
+siapa pembelinya — toko, bukan individu. Karena itu perubahannya cukup satu
+migrasi (`004_toko.sql`) dan penyesuaian kosakata; seluruh 159 test tetap
+berlaku tanpa satu pun diubah logikanya.
+
+Satu keputusan bisnis yang sengaja dipertahankan: toko **memesan di muka dan
+beli putus**, bukan titip jual. Titip jual akan mengembalikan risiko barang tak
+laku ke Rantang, dan itu menghapus pilar "limbah mendekati nol" — pilar yang
+juga menopang perhitungan marginnya. Konbini Jepang pun bekerja dengan pesanan
+di muka, bukan konsinyasi.
 
 ### Tujuan utama: belajar
 
@@ -45,18 +66,21 @@ bukan usaha yang sedang berjalan.
 ### Yang dibangun
 
 - Satu dapur
-- Dua peran: `customer` dan `kitchen`
-- Pelanggan: daftar, masuk, lihat menu per tanggal, pesan, batal, lihat saldo
-- Dapur: buka tanggal layanan + kuota, lihat daftar produksi, lihat daftar
-  antar, setujui pengisian saldo
-- Saldo prabayar dalam rupiah, diisi lewat transfer manual yang dikonfirmasi
-  dapur
+- Dua peran: `toko` dan `dapur`
+- Toko: daftar, masuk, lihat menu per tanggal, pesan sejumlah unit, batal,
+  lihat deposit dan riwayat mutasinya
+- Dapur: buka hari produksi + kuota, lihat daftar produksi, lihat daftar kirim,
+  tandai terkirim, setujui pengisian deposit
+- Deposit dalam rupiah, diisi lewat transfer manual yang dikonfirmasi dapur.
+  Meminta deposit di muka tidak lazim untuk B2B, tapi masuk akal untuk pemasok
+  baru yang belum sanggup memberi termin pembayaran.
 
 ### Yang sengaja TIDAK dibangun
 
 Gerbang pembayaran · aplikasi/pelacakan kurir · notifikasi & email · banyak
 dapur · varian dan topping · kupon dan diskon · ulasan · chat · aplikasi
-mobile · Docker · CI · kunci idempotency · reset kata sandi
+mobile · Docker · CI · kunci idempotency · reset kata sandi · konsinyasi dan
+pencatatan retur · beberapa pengiriman per hari
 
 Alasan umum: tiap tambahan ini memberi sedikit sekali pelajaran baru per waktu
 yang dihabiskan. Ini cara paling umum proyek pribadi mati.
@@ -101,8 +125,9 @@ React + Vite  →  HTTP/JSON  →  Express (Node.js)  →  SQL  →  PostgreSQL
 Delapan tabel.
 
 ### `users`
-`id` · `email` (unik) · `password_hash` · `nama` · `telepon` · `alamat` ·
-`peran` (`customer` | `kitchen`) · `saldo` (integer rupiah) · `dibuat_pada`
+`id` · `email` (unik) · `password_hash` · `nama` (nama toko) · `pic`
+(penanggung jawab di toko) · `telepon` · `alamat` (alamat toko) ·
+`peran` (`toko` | `dapur`) · `saldo` (deposit, integer rupiah) · `dibuat_pada`
 
 ### `menu_items`
 `id` · `nama` · `deskripsi` · `harga` (integer rupiah) · `aktif`

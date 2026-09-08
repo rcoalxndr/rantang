@@ -9,54 +9,54 @@ import { daftarTopupPending, setujuiTopup, tolakTopup } from '../services/saldo.
 import { daftarProduksi, daftarAntar, tandaiTerkirim } from '../services/dapur.js';
 import { wajibPeran } from '../auth/middleware.js';
 
-export const routerKitchen = Router();
+export const routerDapur = Router();
 
-// Seluruh router ini hanya untuk peran kitchen. Dipasang sekali di sini,
+// Seluruh router ini hanya untuk peran dapur. Dipasang sekali di sini,
 // bukan diulang di tiap rute — satu baris yang lupa ditulis di rute baru
 // adalah cara paling umum lubang otorisasi muncul.
-routerKitchen.use(wajibPeran('kitchen'));
+routerDapur.use(wajibPeran('dapur'));
 
-routerKitchen.get('/menu-items', async (_req, res) => {
+routerDapur.get('/menu-items', async (_req, res) => {
   res.json({ item: await daftarMenuItem() });
 });
 
-routerKitchen.post('/menu-items', async (req, res) => {
+routerDapur.post('/menu-items', async (req, res) => {
   const { nama, deskripsi, harga } = req.body ?? {};
   const item = await buatMenuItem({ nama, deskripsi, harga });
   res.status(201).json({ item });
 });
 
-routerKitchen.post('/service-days', async (req, res) => {
+routerDapur.post('/service-days', async (req, res) => {
   const { tanggal, batasWaktuPesan, item } = req.body ?? {};
   const hasil = await bukaTanggalLayanan({ tanggal, batasWaktuPesan, item });
   res.status(201).json(hasil);
 });
 
-routerKitchen.post('/service-days/:tanggal/close', async (req, res) => {
+routerDapur.post('/service-days/:tanggal/close', async (req, res) => {
   await tutupTanggalLayanan(req.params.tanggal);
   res.status(204).end();
 });
 
-routerKitchen.get('/topups', async (_req, res) => {
+routerDapur.get('/topups', async (_req, res) => {
   res.json({ topup: await daftarTopupPending() });
 });
 
-routerKitchen.post('/topups/:id/approve', async (req, res) => {
+routerDapur.post('/topups/:id/approve', async (req, res) => {
   res.json(await setujuiTopup({ reviewerId: req.user.id, topupId: req.params.id }));
 });
 
-routerKitchen.post('/topups/:id/reject', async (req, res) => {
+routerDapur.post('/topups/:id/reject', async (req, res) => {
   res.json(await tolakTopup({ reviewerId: req.user.id, topupId: req.params.id }));
 });
 
-routerKitchen.get('/production', async (req, res) => {
+routerDapur.get('/production', async (req, res) => {
   res.json(await daftarProduksi(req.query.tanggal));
 });
 
-routerKitchen.get('/deliveries', async (req, res) => {
+routerDapur.get('/deliveries', async (req, res) => {
   res.json(await daftarAntar(req.query.tanggal));
 });
 
-routerKitchen.post('/orders/:id/deliver', async (req, res) => {
+routerDapur.post('/orders/:id/deliver', async (req, res) => {
   res.json(await tandaiTerkirim(req.params.id));
 });
