@@ -13,19 +13,16 @@ Dapur hanya memasak sebanyak yang sudah dipesan. Pelanggan mengisi saldo di
 muka, memesan untuk tanggal tertentu sebelum batas waktu, dan dapur membuka
 daftar produksi setiap pagi.
 
-<!-- TANGKAPAN LAYAR — cara mengaktifkan:
-     1. Jalankan aplikasinya (lihat "Menjalankan secara lokal" di bawah)
-     2. Win+Shift+S, simpan dua gambar ini:
-          docs/gambar/toko-pesan.png   layar Pesan, sudah terisi angka
-          docs/gambar/dapur-hari.png   Hari produksi dengan daftar kirim terisi
-     3. Hapus baris <!-- dan --> yang mengapit blok di bawah, lalu commit.
-
 ## Tangkapan layar
 
-| Sisi toko | Sisi dapur |
-|---|---|
-| ![Layar pemesanan toko](docs/gambar/toko-pesan.png) | ![Daftar produksi dan kirim](docs/gambar/dapur-hari.png) |
--->
+![Layar pemesanan toko](docs/gambar/toko-pesan.png)
+
+*Sisi toko: menu untuk satu tanggal, sisa unit, dan batas waktu pesan. Dapur
+memasak persis sejumlah yang dipesan sebelum batas itu.*
+
+<!-- Belum ada: docs/gambar/dapur-hari.png — layar Hari produksi (daftar
+     produksi + daftar kirim). Setelah berkasnya ada, tambahkan barisnya:
+     ![Daftar produksi dan kirim](docs/gambar/dapur-hari.png) -->
 
 ## Alur satu pesanan
 
