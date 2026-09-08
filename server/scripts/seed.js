@@ -7,24 +7,38 @@ import { hashPassword } from '../src/auth/password.js';
 const KATA_SANDI_CONTOH = 'rantang-demo-2026';
 
 /**
- * Penjagaan produksi.
+ * Penjagaan: yang diperiksa DATABASE-nya, bukan lingkungannya.
  *
  * Skrip ini diawali TRUNCATE seluruh tabel. Di laptop itu tidak apa-apa; di
- * database yang sedang dipakai orang, itu menghapus semuanya dalam sekejap
- * tanpa bisa dibatalkan.
+ * database yang dipakai orang, itu menghapus semuanya dalam sekejap tanpa bisa
+ * dibatalkan.
  *
- * Karena itu di produksi skrip menolak jalan kecuali diminta secara eksplisit
- * lewat IZINKAN_SEED_PRODUKSI=ya. Satu variabel yang harus diketik sengaja
- * adalah pembeda antara "menyiapkan data demo" dan "kehilangan segalanya
- * karena salah tekan panah atas di terminal".
+ * Versi pertama penjagaan ini memeriksa `NODE_ENV === 'production'` — dan itu
+ * salah sasaran. Kejadian yang paling mungkin merusak justru menjalankan skrip
+ * ini DARI LAPTOP dengan DATABASE_URL yang menunjuk ke database daring, dan di
+ * situ NODE_ENV tidak pernah bernilai production. Penjagaan yang benar melihat
+ * ke mana koneksinya menuju.
  */
 function periksaIzin() {
-  if (process.env.NODE_ENV !== 'production') return;
+  const url = process.env.DATABASE_URL ?? '';
+  let host;
+  try {
+    host = new URL(url).hostname;
+  } catch {
+    console.error('Ditolak: DATABASE_URL tidak bisa dibaca.');
+    process.exit(1);
+  }
+
+  const dilaptop = host === 'localhost' || host === '127.0.0.1' || host === '::1';
+  if (dilaptop) return;
+
   if (process.env.IZINKAN_SEED_PRODUKSI === 'ya') {
-    console.warn('PERINGATAN: menjalankan seed di produksi. Seluruh data akan dihapus.');
+    console.warn(`PERINGATAN: seed dijalankan terhadap ${host}. Seluruh data di sana akan dihapus.`);
     return;
   }
-  console.error('Ditolak: seed menghapus SELURUH tabel dan NODE_ENV=production.');
+
+  console.error(`Ditolak: DATABASE_URL menunjuk ke ${host}, bukan database lokal.`);
+  console.error('Skrip ini menghapus SELURUH tabel sebelum mengisi data contoh.');
   console.error('Kalau memang disengaja, jalankan dengan IZINKAN_SEED_PRODUKSI=ya');
   process.exit(1);
 }

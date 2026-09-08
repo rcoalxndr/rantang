@@ -143,55 +143,66 @@ satu database dan saling menimpa kalau berjalan paralel.
 
 ## Deploy
 
-Satu layanan saja: Express menyajikan hasil build React sekaligus API-nya, jadi
-frontend dan backend berbagi asal yang sama — cookie sesi bekerja apa adanya dan
-CORS tidak dibutuhkan di produksi.
+Dua layanan, keduanya tingkat gratis tanpa kartu kredit dan tanpa mekanisme
+penagihan sama sekali:
 
-Database dan server sengaja dipisah ke dua penyedia dengan tingkat gratis yang
-tidak berbatas waktu.
+- **Neon** — PostgreSQL. Gratis tanpa batas waktu, 0,5 GB.
+- **Vercel** — menyajikan frontend statis dan menjalankan Express sebagai
+  fungsi. Plan Hobby tidak punya siklus penagihan; melewati batas berarti
+  dijeda, bukan ditagih.
+
+Express dijalankan sebagai fungsi, bukan proses yang hidup terus. Itu tidak
+menuntut perubahan apa pun di `server/src/` — `buatApp()` memang sudah terpisah
+dari `server.js` sejak awal supaya bisa dites tanpa menyalakan server, dan
+pemisahan yang sama ternyata cukup untuk berjalan tanpa server.
 
 ### 1. Database — Neon
 
-Buat project baru, salin connection string-nya (sudah termasuk `?sslmode=require`).
+Buat project (AWS, region Singapore), salin connection string-nya.
 
-### 2. Server — Render
+### 2. Migrasi dari laptop
 
-Repo ini punya `render.yaml`, jadi Render membaca sendiri perintah build, start,
-dan daftar variabelnya. Tidak ada yang perlu diketik manual kecuali satu nilai
-rahasia.
+Tabel harus dibuat sekali. Buat `server/.env.produksi` — namanya diawali `.env`
+sehingga otomatis terabaikan git:
 
-**New → Blueprint** → pilih repo `rantang` → Render menampilkan rencananya →
-tempel connection string Neon saat diminta mengisi `DATABASE_URL` → **Apply**.
-
-Kalau Render tidak mengenali blueprint-nya, buat **Web Service** biasa dan isi
-manual:
-
-| Kolom | Nilai |
-|---|---|
-| Build Command | `cd server && npm ci && cd ../web && npm ci && npm run build` |
-| Start Command | `cd server && npm run migrate && npm start` |
-| Instance Type | Free |
-
-Variabel: `DATABASE_URL` (dari Neon), `NODE_ENV=production`, `COOKIE_SECURE=true`.
-`PORT` diisi Render sendiri, jangan diatur manual.
-
-### 3. Data contoh (opsional)
-
-Lewat **Shell** di dasbor Render:
-
-```bash
-cd server && IZINKAN_SEED_PRODUKSI=ya npm run seed
+```
+DATABASE_URL=postgresql://...connection string dari Neon...
 ```
 
-Skrip seed diawali `TRUNCATE` seluruh tabel, jadi ia menolak jalan di produksi
-kecuali variabel itu diberikan secara sengaja.
+Lalu:
 
-### Batasan tingkat gratis
+```bash
+cd server && npm run migrate:prod
+```
 
-Instance gratis Render **tidur setelah 15 menit tanpa lalu lintas**, dan bangun
-lagi sekitar satu menit saat ada kunjungan berikutnya. Untuk demo portofolio ini
-disengaja: tidak ada kartu kredit, tidak ada tagihan yang bisa muncul mendadak,
-dan tidak ada kredit yang habis lalu berubah jadi biaya.
+Data contoh, kalau mau demonya berisi:
+
+```bash
+cd server && IZINKAN_SEED_PRODUKSI=ya npm run seed:prod
+```
+
+Variabel itu wajib karena skrip seed diawali `TRUNCATE` seluruh tabel. Ia
+menolak jalan terhadap host mana pun selain `localhost` kecuali diminta
+sengaja — yang diperiksa databasenya, bukan `NODE_ENV`, karena skenario paling
+berbahaya justru menjalankannya dari laptop ke database daring.
+
+### 3. Vercel
+
+**Add New → Project** → pilih repo `rantang` → Vercel membaca `vercel.json`,
+jadi perintah build dan folder keluarannya terisi sendiri.
+
+Tambahkan variabel lingkungan:
+
+```
+DATABASE_URL   = (connection string dari Neon)
+COOKIE_SECURE  = true
+PG_MAX         = 1
+```
+
+`PG_MAX=1` karena tiap pemanggilan fungsi berumur pendek; kolam koneksi besar
+tidak berguna dan hanya menghabiskan jatah koneksi Neon.
+
+Lalu **Deploy**.
 
 ## Struktur
 

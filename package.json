@@ -1,0 +1,14 @@
+{
+  "name": "rantang",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Berkas ini hanya untuk deploy ke Vercel. Vercel memasang dependency dari akar repo, dan fungsi di api/ perlu menemukan express serta pg dari sini. Pengembangan lokal tetap memakai server/package.json dan web/package.json seperti biasa.",
+  "scripts": {
+    "build": "npm --prefix web ci && npm --prefix web run build"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "pg": "^8.13.0"
+  }
+}
