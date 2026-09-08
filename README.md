@@ -156,23 +156,23 @@ Buat project baru, salin connection string-nya (sudah termasuk `?sslmode=require
 
 ### 2. Server — Render
 
-**New → Web Service**, hubungkan ke repo ini, lalu isi:
+Repo ini punya `render.yaml`, jadi Render membaca sendiri perintah build, start,
+dan daftar variabelnya. Tidak ada yang perlu diketik manual kecuali satu nilai
+rahasia.
+
+**New → Blueprint** → pilih repo `rantang` → Render menampilkan rencananya →
+tempel connection string Neon saat diminta mengisi `DATABASE_URL` → **Apply**.
+
+Kalau Render tidak mengenali blueprint-nya, buat **Web Service** biasa dan isi
+manual:
 
 | Kolom | Nilai |
 |---|---|
 | Build Command | `cd server && npm ci && cd ../web && npm ci && npm run build` |
-| Pre-Deploy Command | `cd server && npm run migrate` |
-| Start Command | `cd server && npm start` |
+| Start Command | `cd server && npm run migrate && npm start` |
 | Instance Type | Free |
 
-Variabel lingkungan:
-
-```
-DATABASE_URL   = (connection string dari Neon)
-NODE_ENV       = production
-COOKIE_SECURE  = true
-```
-
+Variabel: `DATABASE_URL` (dari Neon), `NODE_ENV=production`, `COOKIE_SECURE=true`.
 `PORT` diisi Render sendiri, jangan diatur manual.
 
 ### 3. Data contoh (opsional)

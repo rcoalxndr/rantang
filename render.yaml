@@ -1,0 +1,40 @@
+# Konfigurasi deploy untuk Render.
+#
+# Dengan berkas ini, Render membaca sendiri perintah build, perintah start, dan
+# daftar variabel lingkungannya — tidak ada yang perlu diketik manual di dasbor
+# selain satu nilai rahasia (DATABASE_URL).
+#
+# Berkas ini tidak mengikat aplikasinya ke Render. Kalau suatu saat pindah
+# penyedia, hapus berkas ini; kodenya tidak berubah sama sekali.
+
+services:
+  - type: web
+    name: rantang
+    runtime: node
+    plan: free
+    region: singapore
+
+    # Pasang dependency kedua paket, lalu bangun frontend. Hasil build-nya
+    # disajikan langsung oleh Express, jadi hanya ada satu layanan.
+    buildCommand: cd server && npm ci && cd ../web && npm ci && npm run build
+
+    # Migrasi dijalankan tepat sebelum server menyala. Skrip migrasinya
+    # idempoten — migrasi yang sudah pernah jalan dilewati — jadi aman diulang
+    # setiap kali deploy.
+    startCommand: cd server && npm run migrate && npm start
+
+    healthCheckPath: /api/health
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      # Cookie sesi hanya dikirim lewat HTTPS. Render selalu menyediakan HTTPS,
+      # dan `trust proxy` di src/app.js yang membuat Express menyadarinya.
+      - key: COOKIE_SECURE
+        value: "true"
+
+      # sync: false berarti Render menanyakan nilainya saat deploy dan
+      # menyimpannya sebagai rahasia — tidak pernah ikut tertulis di repo.
+      - key: DATABASE_URL
+        sync: false
