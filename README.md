@@ -1,5 +1,12 @@
 # Rantang — Sistem Pemesanan Prabayar
 
+**Demo langsung: https://rantang-omega.vercel.app**
+
+Masuk sebagai toko dengan `melati@toserba.test`, atau sebagai dapur dengan
+`dapur@rantang.test`. Kata sandi keduanya `rantang-demo-2026`. Silakan pesan,
+batalkan, dan lihat daftar produksinya berubah — datanya memang untuk dicoba.
+
+
 Sistem pemesanan untuk **Rantang**, konsep bisnis makanan siap-santap bergizi
 seimbang dari tugas mata kuliah Kewirausahaan. Bisnisnya belum berjalan;
 perangkat lunaknya nyata.

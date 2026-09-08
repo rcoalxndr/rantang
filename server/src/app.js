@@ -32,16 +32,8 @@ function penanganError(err, _req, res, _next) {
   }
 
   console.error('[error tak tertangani]', err);
-
-  // DIAGNOSTIK SEMENTARA — dicabut setelah masalah koneksi produksi ketemu.
-  // Jangan biarkan ini hidup: pesan error internal bisa membocorkan nama tabel,
-  // bentuk kueri, atau jalur berkas.
   res.status(500).json({
-    error: {
-      code: 'KESALAHAN_SERVER',
-      message: 'Terjadi kesalahan di server.',
-      diagnostik: { nama: err?.name, kode: err?.code, pesan: err?.message },
-    },
+    error: { code: 'KESALAHAN_SERVER', message: 'Terjadi kesalahan di server.' },
   });
 }
 
@@ -60,32 +52,6 @@ export function buatApp() {
   app.use(lampirkanSesi);
 
   app.get('/api/health', (_req, res) => res.json({ ok: true }));
-
-  // DIAGNOSTIK SEMENTARA — dicabut setelah koneksi produksi beres.
-  // Hanya melaporkan BENTUK nilainya, tidak pernah isinya: kata sandi tidak
-  // ikut ditampilkan di mana pun.
-  app.get('/api/health/env', (_req, res) => {
-    const url = process.env.DATABASE_URL ?? '';
-    let host = null;
-    let galat = null;
-    try {
-      host = new URL(url).hostname;
-    } catch (e) {
-      galat = e.message;
-    }
-    res.json({
-      adaDatabaseUrl: Boolean(process.env.DATABASE_URL),
-      panjang: url.length,
-      diawali: url.slice(0, 14),
-      diakhiri: url.slice(-24),
-      adaPooler: url.includes('pooler'),
-      adaSslmode: url.includes('sslmode='),
-      adaSpasi: /\s/.test(url),
-      host,
-      galat,
-      pgMax: process.env.PG_MAX ?? null,
-    });
-  });
   app.use('/api/auth', routerAuth);
   app.use('/api', routerMenu);
   app.use('/api/dapur', routerDapur);
